@@ -18,7 +18,7 @@ loadkeys br-abnt2
 ```
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/odrdk/dotfiles/arch-2026/arch-instalar -o i && bash i
+curl -fsSL https://raw.githubusercontent.com/odrdk/dotfiles/arch-install/arch-install -o i && bash i
 ```
 
 4. Digite `APAGAR`, escolha o usuário (Enter usa `odrdk`) e crie as duas senhas.

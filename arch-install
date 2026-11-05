@@ -7,7 +7,7 @@ set -euo pipefail
 USUARIO=odrdk
 MAQUINA=odrdk
 REPO_URL=https://github.com/odrdk/dotfiles
-BRANCH=arch-2026
+BRANCH=arch-install
 SWAP=8G
 ROOT=64G
 KEYFILE=/root/secrets/crypto_keyfile.bin
