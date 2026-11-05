@@ -1,0 +1,4 @@
+python-pywal16
+acpilight devour tty-clock-git pipes.sh simple-mtpfs epub-thumbnailer-git
+themix-gui-git themix-theme-oomox-git archdroid-icon-theme
+brave-bin visual-studio-code-bin zapzap claude-code

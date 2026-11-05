@@ -1,291 +1,96 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Instala estes dotfiles no Arch. Pode rodar de novo sem estragar nada.
+set -euo pipefail
 
-path=$(pwd)
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BACKUP="$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)"
+CONFIG="$HOME/.config"
 
-clear
-echo "Installing programs..."
-echo "Already have yay installed? (y/n)"
-read answer
-sleep 1 && clear
+passo() { printf '\n==> %s\n' "$1"; }
+pacotes() { grep -v '^#' "$1" | xargs -n1 echo; }
 
-case $answer in
-  "y")
-    echo "Installing programs..."
-    yay -S cava slop devour exa tty-clock-git picom-jonaburg-git mpd mpc ncmpcpp cmatrix-git pipes.sh qalculate-gtk xsettingsd themix-gui-git themix-theme-oomox-git archdroid-icon-theme cmus checkupdates+aur libnotify udiskie wal-telegram-git poppler npm p7zip epub-thumbailer-git python-pdftotext python-pywalfox tesseract-data-eng tesseract-data-por arandr clipmenu zsh playerctl dbus simple-mtpfs dunst feh ffmpeg ffmpegthumbnailer firefox flameshot fzf git gnu-free-fonts go htop imagemagick mpv neofetch neovim noto-fonts noto-fonts-cjk noto-fonts-emoji numlockx obs-studio openssh perl pulseaudio pulsemixer python-pip python-pywal ranger syncthing sxiv telegram-desktop tmux tree ttf-jetbrains-mono-nerd ttf-font-awesome gpick ueberzugpp redshift unzip vim webkit2gtk xclip yt-dlp zathura zathura-djvu zathura-pdf-mupdf zip xorg-server xorg-xinit libx11 libxinerama libxft base base-devel --noconfirm
-    sudo pywalfox install
-    sleep 1 && clear
-    ;;
-  "n")
-    echo "Installing yay..."
-    git clone https://aur.archlinux.org/yay.git /tmp/yay
-    cd /tmp/yay
-    makepkg -si 
-    sleep 1 && clear
-    
-    echo "Installing programs..."
-    yay -S cava slop devour exa tty-clock-git picom-jonaburg-git mpd mpc ncmpcpp cmatrix-git pipes.sh qalculate-gtk xsettingsd themix-gui-git themix-theme-oomox-git archdroid-icon-theme cmus checkupdates+aur libnotify udiskie wal-telegram-git poppler npm p7zip epub-thumbailer-git python-pdftotext python-pywalfox tesseract-data-eng tesseract-data-por arandr clipmenu zsh playerctl dbus simple-mtpfs dunst feh ffmpeg ffmpegthumbnailer firefox flameshot fzf git gnu-free-fonts go htop imagemagick mpv neofetch neovim noto-fonts noto-fonts-cjk noto-fonts-emoji numlockx obs-studio openssh perl pulseaudio pulsemixer python-pip python-pywal ranger syncthing sxiv telegram-desktop tmux tree ttf-jetbrains-mono-nerd ttf-font-awesome gpick ueberzugpp redshift unzip vim webkit2gtk xclip yt-dlp zathura-djvu zathura-pdf-mupdf zip xorg-server xorg-xinit libx11 libxinerama libxft base base-devel --noconfirm
-    sudo pywalfox install
-    sleep 1 && clear
-    ;;
-  *)
-    echo "Invalid answer, skipping..."
-    sleep 1 && clear
-    ;;
-esac
+[ "$(id -u)" -ne 0 ] || { echo "Rode como usuário comum, não como root."; exit 1; }
 
-echo "Is this installation on a laptop? (y/n)"
-read answer
-sleep 1 && clear
+# Arquivo real vai para o backup; link antigo é só trocado.
+liga() {
+  local origem="$1" destino="$2"
+  mkdir -p "$(dirname "$destino")"
+  if [ -e "$destino" ] && [ ! -L "$destino" ]; then
+    mkdir -p "$BACKUP"
+    mv "$destino" "$BACKUP/"
+  fi
+  ln -sfn "$origem" "$destino"
+}
 
-case $answer in
-  "y")
-    echo "Installing dependencies..."
-    yay -S acpi acpilight
-    sleep 1 && clear
-    echo "Want to enable touchpad tap-to-click? (y/n)"
-    read answer
-    sleep 1 && clear
+passo "Pacotes oficiais"
+pacotes "$REPO/pacotes/oficial.txt" | sudo pacman -S --needed --noconfirm -
 
-    case $answer in 
-      "y")
-        echo "Enabling tap-to-click..."
-        sudo mkdir -p /etc/X11/xorg.conf.d && sudo tee <<'EOF' /etc/X11/xorg.conf.d/90-touchpad.conf 1> /dev/null
-Section "InputClass"
-          Identifier "touchpad"
-          MatchIsTouchpad "on"
-          Driver "libinput"
-          Option "Tapping" "on"
-EndSection
-
-EOF
-sleep 1 && clear
-        ;;
-
-      "n")
-        echo "OK, Skipping..."
-        sleep 1 && clear
-        ;;
-
-      "*")
-        echo "Invalid answer, skipping..."
-        sleep 1 && clear
-        ;;
-    esac
-    ;;
-
-  "n")
-    echo "Skipping..."
-    sleep 1 && clear
-    ;;
-  *)
-    echo "Invalid answer, skipping..."
-    sleep 1 && clear
-    ;;
-esac
-
-
-echo "Already have Oh-My-Zsh installed? (y/n)"
-read answer
-sleep 1 && clear
-
-case $answer in
-  "y")
-    if [ -L $HOME/.config/zsh ]; then
-    rm $HOME/.config/zsh
-    fi
-    ln -sfv $path/.config/zsh $HOME/.config/zsh 
-
-    if [ -L $HOME/.zshrc ]; then
-    rm $HOME/.zshrc
-    fi
-    sleep 1 && clear
-    ;;
-  "n")
-    echo "Installing..."
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-    if [ -L $HOME/.config/zsh ]; then
-    rm $HOME/.config/zsh
-    mv $path/.config/zsh/.zshrc.pre-oh-my-zsh $path/.config/zsh/.zshrc
-    fi
-    ln -sfv $path/.config/zsh $HOME/.config/zsh 
-
-    if [ -f $HOME/.zshrc ]; then
-    rm $HOME/.zshrc
-    fi
-    sleep 1 && clear
-    ;;
-  *)
-    echo "Invalid answer, skipping..."
-    sleep 1 && clear
-    ;;
-esac
-
-
-echo "Organizing dotfiles..."
-echo ""
-ln -sf $path/.Xresources $HOME/.Xresources
-ln -sf $path/.xinitrc $HOME/.xinitrc
-ln -sf $path/.zshenv $HOME/.zshenv
-
-[ ! -d $HOME/.config ] && mkdir $HOME/.config
-[ ! -d $HOME/.local ] && mkdir $HOME/.local
-[ ! -d $HOME/.local/bin ] && mkdir $HOME/.local/bin
-
-if [ -d ~/.oh-my-zsh ]; then
-    mv ~/.oh-my-zsh ~/.config/
+passo "yay"
+if ! command -v yay >/dev/null; then
+  tmp="$(mktemp -d)"
+  git clone https://aur.archlinux.org/yay-bin.git "$tmp/yay-bin"
+  (cd "$tmp/yay-bin" && makepkg -si --noconfirm)
+  rm -rf "$tmp"
 fi
 
-if [ -L $HOME/.config/cava ]; then
-  rm -rf $HOME/.config/cava
-fi
-ln -sf $path/.config/cava $HOME/.config/cava
+passo "Pacotes do AUR"
+pacotes "$REPO/pacotes/aur.txt" | xargs -o yay -S --needed --noconfirm --sudoloop --answerdiff None --answerclean None --removemake
 
-if [ -L $HOME/.config/redshift ]; then
-  rm -rf $HOME/.config/redshift
-fi
-ln -sf $path/.config/redshift $HOME/.config/redshift
+passo "Oh My Zsh"
+[ -d "$CONFIG/.oh-my-zsh" ] || git clone --depth 1 https://github.com/ohmyzsh/ohmyzsh.git "$CONFIG/.oh-my-zsh"
 
-if [ -L $HOME/.config/dunst ]; then
-  rm -rf $HOME/.config/dunst
-fi
-ln -sf $path/.config/dunst $HOME/.config/dunst
+passo "Links"
+for f in .Xresources .xinitrc .zshenv; do
+  liga "$REPO/$f" "$HOME/$f"
+done
+for d in zsh suckless nvim picom ranger xmenu wal mpv mpd ncmpcpp cmus redshift sxiv xsettingsd; do
+  liga "$REPO/.config/$d" "$CONFIG/$d"
+done
+find "$REPO/.local/bin" -maxdepth 1 -type f -print0 | while IFS= read -r -d '' f; do
+  chmod +x "$f"
+  liga "$f" "$HOME/.local/bin/$(basename "$f")"
+done
+chmod +x "$REPO"/.local/bin/statusbar/*
+liga "$REPO/.local/bin/statusbar" "$HOME/.local/bin/statusbar"
+liga "$REPO/.config/xmenu/xmenu.sh" "$HOME/.local/bin/menu"
 
-if [ -L $HOME/.config/xsettingsd ]; then
-  rm -rf $HOME/.config/xsettingsd
-fi
-ln -sf $path/.config/xsettingsd $HOME/.config/xsettingsd
+# Estes quatro são gerados pelo pywal; ficam vazios até o primeiro wal -i.
+liga "$HOME/.cache/wal/dunstrc" "$CONFIG/dunst/dunstrc"
+liga "$HOME/.cache/wal/flameshot.ini" "$CONFIG/flameshot/flameshot.ini"
+liga "$HOME/.cache/wal/config" "$CONFIG/cava/config"
+liga "$HOME/.cache/wal/zathurarc" "$CONFIG/zathura/zathurarc"
 
-if [ -L $HOME/.config/xmenu ]; then
-  rm -rf $HOME/.config/xmenu
-fi
-ln -sf $path/.config/xmenu $HOME/.config/xmenu
+mkdir -p "$HOME/Pictures/wallpapers" "$HOME/Music" "$CONFIG/mpd/playlists"
+xdg-user-dirs-update
 
-if [ -L $HOME/.config/flameshot ]; then
-  rm -rf $HOME/.config/flameshot
-fi
-ln -sf $path/.config/flameshot $HOME/.config/flameshot
+passo "Compilar suckless"
+for p in dwm st dmenu slock; do
+  rm -f "$REPO/.config/suckless/$p/config.h"
+  make -C "$REPO/.config/suckless/$p" clean all
+  sudo make -C "$REPO/.config/suckless/$p" install
+done
+make -C "$REPO/.config/suckless/dwmblocks-async" clean all
+sudo make -C "$REPO/.config/suckless/dwmblocks-async" install
+make -C "$REPO/.config/xmenu"
+sudo make -C "$REPO/.config/xmenu" install
 
-if [ -L $HOME/.config/mpv ]; then
-  rm -rf $HOME/.config/mpv
-fi
-ln -sf $path/.config/mpv $HOME/.config/mpv
+passo "Touchpad"
+sudo mkdir -p /etc/X11/xorg.conf.d
+sudo cp "$REPO/pacotes/90-touchpad.conf" /etc/X11/xorg.conf.d/90-touchpad.conf
 
-if [ -L $HOME/.config/neofetch ]; then
-  rm -rf $HOME/.config/neofetch
-fi
-ln -sf $path/.config/neofetch $HOME/.config/neofetch
+passo "Serviços"
+sudo systemctl enable --now NetworkManager bluetooth
 
-if [ -L $HOME/.config/sxiv ]; then
-  rm -rf $HOME/.config/sxiv
-fi
-ln -sf $path/.config/sxiv $HOME/.config/sxiv
+passo "Shell"
+[ "$(getent passwd "$USER" | cut -d: -f7)" = /usr/bin/zsh ] || chsh -s /usr/bin/zsh
 
-if [ -L $HOME/.config/wal ]; then
-  rm -rf $HOME/.config/wal
-fi
-ln -sf $path/.config/wal $HOME/.config/wal
-ln -sf $HOME/.cache/wal/dunstrc $HOME/.config/dunst/dunstrc
-ln -sf $HOME/.cache/wal/flameshot.ini $HOME/.config/flameshot/flameshot.ini
-ln -sf $HOME/.cache/wal/config $HOME/.config/cava/config
-ln -sf $HOME/.cache/wal/zathurarc $HOME/.config/zathura/zathurarc
+passo "Navegador padrão"
+xdg-settings set default-web-browser brave-browser.desktop || true
 
-if [ -L $HOME/.config/picom ]; then
-  rm -rf $HOME/.config/picom
-fi
-ln -sf $path/.config/picom $HOME/.config/picom
+passo "Cores"
+# Sem X ainda: gera os arquivos do pywal e deixa o .xinitrc aplicar.
+cp -n "$REPO/img/raven.png" "$HOME/Pictures/wallpapers/" || true
+[ -e "$HOME/.cache/wal/colors" ] || wal -n -e -s -t -i "$HOME/Pictures/wallpapers/raven.png" || true
 
-if [ -L $HOME/.config/ranger ]; then
-  rm -rf $HOME/.config/ranger
-fi
-ln -sf $path/.config/ranger $HOME/.config/ranger
-
-if [ -L $HOME/.config/zathura ]; then
-  rm -rf $HOME/.config/zathura
-fi
-ln -sf $path/.config/zathura $HOME/.config/zathura
-
-if [ -L $HOME/.config/cmus ]; then
-  rm -rf $HOME/.config/cmus
-fi
-ln -sf $path/.config/cmus $HOME/.config/cmus
-
-if [ -L $HOME/.config/mpd ]; then
-  rm -rf $HOME/.config/mpd
-fi
-ln -sf $path/.config/cmus $HOME/.config/mpd
-
-if [ -L $HOME/.config/ncmpcpp ]; then
-  rm -rf $HOME/.config/ncmpcpp
-fi
-ln -sf $path/.config/cmus $HOME/.config/ncmpcpp
-
-if [ -L $HOME/.config/user-dirs.dirs ]; then
-  rm -rf $HOME/.config/user-dirs.dirs
-fi
-ln -sf $path/.config/user-dirs.dirs $HOME/.config/user-dirs.dirs
-
-if [ -L $HOME/.config/suckless ]; then
-  rm -rf $HOME/.config/suckless
-fi
-ln -sf $path/.config/suckless $HOME/.config/suckless
-
-if [ -L $HOME/.config/nvim ]; then
-  rm -rf $HOME/.config/nvim
-fi
-ln -sf $path/.config/nvim $HOME/.config/nvim
-
-if [ -L $HOME/.local/bin/statusbar ]; then
-  rm -rf $HOME/.local/bin/statusbar
-fi
-ln -sf $path/.local/bin/statusbar $HOME/.local/bin
-
-ln -sf $path/.local/bin/dwall $HOME/.local/bin
-ln -sf $path/.local/bin/cmus-notify $HOME/.local/bin
-ln -sf $path/.local/bin/wg $HOME/.local/bin
-ln -sf $path/.local/bin/dfiles $HOME/.local/bin
-ln -sf $path/.local/bin/dstreaming $HOME/.local/bin
-ln -sf $path/.local/bin/screenshot $HOME/.local/bin
-ln -sf $path/.local/bin/nightmode $HOME/.local/bin
-ln -sf $path/.local/bin/dwifi $HOME/.local/bin
-ln -sf $path/.local/bin/dots $HOME/.local/bin
-ln -sf $path/.local/bin/snipertext $HOME/.local/bin
-ln -sf $path/.local/bin/colorpicker $HOME/.local/bin
-ln -sf $path/.local/bin/droidmount $HOME/.local/bin
-ln -sf $path/.local/bin/statusvolume $HOME/.local/bin
-ln -sf $path/.local/bin/statusmic $HOME/.local/bin
-ln -sf $path/.local/bin/statusbrightness $HOME/.local/bin
-ln -sf $path/.config/xmenu/xmenu.sh $HOME/.local/bin/menu
-ln -sf $path/.local/bin/mpdnotify $HOME/.local/bin
-sleep 1 && clear
-
-
-echo "Preparing folders..."
-	sleep 1 && clear
-if [ ! -e $HOME/.config/user-dirs.dirs ]; then
-	xdg-user-dirs-update
-	echo "Creating xdg-user-dirs..."
-	sleep 1 && clear
-else
-	xdg-user-dirs-update
-	echo "user-dirs.dirs already exists!"
-	sleep 1 && clear
-fi
-sleep 1 && clear
-
-echo "Installing suckless programs..."
-cd $path/.config/suckless/dwm && sudo make clean install && mv -f config.h config.def.h
-cd $path/.config/suckless/st && sudo make clean install && mv -f config.h config.def.h
-cd $path/.config/suckless/dmenu && sudo make clean install && mv -f config.h config.def.h
-cd $path/.config/suckless/slock && sudo make clean install && mv -f config.h config.def.h
-cd $path/.config/suckless/dwmblocks-async && sudo make clean install
-cd $path/.config/xmenu && sudo make install
-
-chmod +x $path/.local/bin
-sleep 1 && clear
-
-echo "Changing default shell..."
-chsh -s /usr/bin/zsh
-sleep 1 && clear
-
-echo "All done!"
-echo "Please log out and log back in for the changes to take effect."
+[ ! -d "$BACKUP" ] || echo "Arquivos antigos em $BACKUP"
+echo "Pronto."

@@ -65,7 +65,7 @@ static const Rule rules[] = {
 	 */
 	/* class                 instance       title         tags mask    isfloating  isterminal  noswallow  monitor */
 	{ "Gimp",                 NULL,          NULL,           0,           1,          0,          -1,        -1 },
-	{ "Firefox",              NULL,          NULL,           0,           0,          0,          -1,        -1 },
+	{ "Brave-browser",            NULL,          NULL,           0,           0,          0,          -1,        -1 },
 	{ "St",                   NULL,          NULL,           0,           0,          1,          -1,        -1 },
 	{ "Pcmanfm",              NULL,          NULL,           0,           0,          1,          -1,        -1 },
   { "Qalculate-gtk",        NULL,          NULL,           0,           1,          0,           1,        -1 },
@@ -129,7 +129,7 @@ static const char *termcmd[]    =   { "st", NULL };
 static const char *screenshot[] =   { "screenshot", NULL };
 static const char *fullshot[]   =   { "flameshot", "full", NULL };
 static const char *slock[]      =   { "slock", NULL };
-static const char *wall[]       =   { "wg", NULL };
+static const char *wall[]       =   { "wallpick", NULL };
 static const char *clip[]       =   { "clipmenu", NULL };
 static const char *dfiles[]     =   { "dfiles", NULL };
 static const char *dots[]       =   { "dots", NULL };

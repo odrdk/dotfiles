@@ -1,7 +1,7 @@
 #!/bin/sh
 
 xmenu <<EOF | sh &
-Change Wallpaper	wg
+Change Wallpaper	wallpick
 Color Picker	colorpicker
 Sniper Text	sleep 1; snipertext
 Screenshot
@@ -9,7 +9,7 @@ Screenshot
 	Fullscreen	sleep 1; flameshot full
 
 Web Browser
-	Firefox	firefox
+	Brave	brave
 	qutebrowser	qutebrowser
 Games
 	Steam	steam
@@ -45,7 +45,7 @@ Edit config
 	mpv
 		input.conf	st -e nvim $HOME/.config/mpv/input.conf
 		mpv.conf	st -e nvim $HOME/.config/mpv/mpv.conf
-	Neofetch	st -e nvim $HOME/.config/neofetch/config.conf
+	Fastfetch	st -e nvim $HOME/.config/fastfetch/config.jsonc
 	Picom	st -e nvim $HOME/.config/picom/picom.conf
 	Ranger
 		rc.conf	st -e nvim $HOME/.config/ranger/rc.conf

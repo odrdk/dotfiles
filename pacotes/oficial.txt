@@ -1,0 +1,24 @@
+# Base e compilação
+base-devel git pkgconf
+# X e bibliotecas do dwm, st, dmenu, slock, xmenu
+xorg-server xorg-xinit xorg-xrandr xorg-xrdb xorg-setxkbmap xorg-xset
+libx11 libxinerama libxft libxrender libxrandr libxcb gd imlib2 fontconfig freetype2 mesa
+# Sessão
+zsh tmux neovim picom dunst feh libnotify numlockx xclip clipmenu xsettingsd udiskie
+flameshot slop redshift arandr qalculate-gtk gpick xdg-user-dirs
+# Terminal
+eza btop htop fastfetch tree fzf ripgrep fd unzip zip 7zip pacman-contrib openssh
+cava cmatrix ranger ueberzugpp
+# Mídia e documentos
+mpv ffmpeg ffmpegthumbnailer imagemagick yt-dlp sxiv vlc qbittorrent
+zathura zathura-pdf-mupdf zathura-djvu poppler tesseract-data-eng tesseract-data-por
+mpd mpc ncmpcpp cmus playerctl perl-html-parser spotify-launcher
+# Áudio, rede, periféricos
+pipewire pipewire-pulse pipewire-alsa wireplumber pulsemixer
+networkmanager bluez bluez-utils solaar kdeconnect acpi
+# Fontes
+ttf-jetbrains-mono-nerd noto-fonts noto-fonts-cjk noto-fonts-emoji gnu-free-fonts woff2-font-awesome
+# Aplicativos
+telegram-desktop xdg-utils scrcpy android-tools
+# Painel Arthos
+nodejs npm python python-pip sqlite tailscale cloudflared rclone nftables ddcutil intel-media-driver libva-utils

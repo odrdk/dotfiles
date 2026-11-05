@@ -1,0 +1,16 @@
+*.o
+config.h
+!.config/suckless/dwmblocks-async/config.h
+!.config/xmenu/config.h
+.config/suckless/dmenu/dmenu
+.config/suckless/dmenu/stest
+.config/suckless/dwm/dwm
+.config/suckless/slock/slock
+.config/suckless/st/st
+.config/suckless/dwmblocks-async/dwmblocks
+.config/suckless/dwmblocks-async/build/
+.config/xmenu/xmenu
+.config/mpd/mpd.db
+.config/mpd/mpd.state
+.config/cmus/autosave
+.config/ncmpcpp/error.log

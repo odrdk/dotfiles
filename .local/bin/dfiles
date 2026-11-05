@@ -6,7 +6,7 @@ DMENU
 DWMBLOCKS
 ZSH
 NEOVIM
-PACKER"
+PLUGINS"
 DMENUCHOICE=$(printf "$ARCHIVE" | dmenu -l 8 -p "EDIT:")
 
 case $DMENUCHOICE in
@@ -15,6 +15,6 @@ case $DMENUCHOICE in
     DMENU) st -e nvim $HOME/.config/suckless/dmenu/config.def.h ;;
     DWMBLOCKS) st -e nvim $HOME/.config/suckless/dwmblocks-async/config.c ;;
     NEOVIM) st -e nvim $HOME/.config/nvim/init.lua ;;
-    PACKER) st -e nvim $HOME/.config/nvim/lua/emnesty/plugins.lua ;;
+    PLUGINS) st -e nvim $HOME/.config/nvim/lua/emnesty/plugins.lua ;;
     ZSH) st -e nvim $HOME/.config/zsh/.zshrc ;;
 esac

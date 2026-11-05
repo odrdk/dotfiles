@@ -1,0 +1,162 @@
+#!/usr/bin/env bash
+# Instala o Arch com kernel zen no SSD Kingston, a partir do pen drive. APAGA o SSD inteiro.
+# Base: LVM sobre LUKS1 com /boot criptografado (GRUB), guia Trigus42/dfb40fe1.
+# Recusa rodar se o HD WD estiver conectado.
+set -euo pipefail
+
+USUARIO=arthur
+MAQUINA=arthos
+REPO_URL=https://github.com/odrdk/dotfiles
+BRANCH=arch-2026
+SWAP=8G
+ROOT=64G
+KEYFILE=/root/secrets/crypto_keyfile.bin
+HOOKS='HOOKS=(base udev autodetect microcode modconf kms keyboard keymap block encrypt lvm2 filesystems fsck)'
+
+erro() { printf '\nERRO: %s\n' "$1" >&2; exit 1; }
+passo() { printf '\n==> %s\n' "$1"; }
+
+# O GRUB lê a senha em teclado americano: só letras e números saem iguais no ABNT2.
+senha_disco_valida() { [[ "$1" =~ ^[A-Za-z0-9]{12,}$ ]]; }
+
+pede_senha() {
+  local nome="$1" valida="$2" a b
+  while :; do
+    read -rsp "$nome: " a; echo
+    read -rsp "Repita: " b; echo
+    if [ -z "$a" ] || [ "$a" != "$b" ]; then
+      echo "Não confere ou está vazia."
+    elif ! "$valida" "$a"; then
+      echo "Use só letras e números, sem acento, com 12 caracteres ou mais."
+    else
+      break
+    fi
+  done
+  SENHA="$a"
+}
+
+limpa() {
+  swapoff -a 2>/dev/null || true
+  umount -R /mnt 2>/dev/null || true
+  vgchange -an vg 2>/dev/null || true
+  cryptsetup close cryptlvm 2>/dev/null || true
+}
+
+[ "$(id -u)" -eq 0 ] || erro "rode como root, no pen drive do Arch."
+loadkeys br-abnt2
+[ -d /sys/firmware/efi ] || erro "o boot não foi em modo UEFI."
+ping -c 1 -W 5 archlinux.org >/dev/null 2>&1 || erro "sem internet. Use cabo ou conecte o Wi-Fi com iwctl."
+
+passo "Procurando discos"
+lsblk -dno NAME,MODEL,SIZE
+DISCOS="$(lsblk -dnpo NAME,MODEL)"
+HD="$(awk 'toupper($0) ~ /WDC|WD10SPZX/ {print $1}' <<<"$DISCOS")"
+SSD="$(awk 'toupper($0) ~ /SA400/ {print $1}' <<<"$DISCOS")"
+[ -z "$HD" ] || erro "o HD WD está conectado ($HD). Desligue, tire o HD e rode de novo."
+[ -n "$SSD" ] || erro "SSD Kingston SA400 não encontrado."
+[ "$(wc -w <<<"$SSD")" -eq 1 ] || erro "mais de um SSD Kingston encontrado."
+
+printf '\nTUDO em %s será apagado, sem volta.\n' "$SSD"
+read -rp 'Digite APAGAR para continuar: ' resposta
+[ "$resposta" = APAGAR ] || erro "cancelado. Nada foi alterado."
+
+read -rp "Nome do usuário [$USUARIO]: " nome
+USUARIO="${nome:-$USUARIO}"
+[[ "$USUARIO" =~ ^[a-z_][a-z0-9_-]{0,31}$ ]] || erro "use minúsculas, números, _ ou -, começando com letra."
+
+pede_senha "Senha do disco, pedida em todo boot" senha_disco_valida
+SENHA_DISCO="$SENHA"
+pede_senha "Senha do usuário $USUARIO" true
+SENHA_USUARIO="$SENHA"
+unset SENHA
+
+limpa
+timedatectl set-ntp true
+
+passo "Apagando e particionando"
+blkdiscard -f "$SSD" || wipefs -a "$SSD"
+sgdisk -Z \
+  -n1:0:+1M -t1:ef02 -c1:"BIOS boot partition" \
+  -n2:0:+550M -t2:ef00 -c2:"EFI System" \
+  -n3:0:0 -t3:8309 -c3:"Linux LUKS" "$SSD"
+udevadm settle
+P2="${SSD}2"
+P3="${SSD}3"
+
+passo "Criptografia (LUKS1, exigida pelo /boot criptografado)"
+printf '%s' "$SENHA_DISCO" | cryptsetup luksFormat --batch-mode --type luks1 --key-slot 1 -s 512 -h sha512 -i 2000 "$P3" -
+printf '%s' "$SENHA_DISCO" | cryptsetup open --key-file=- "$P3" cryptlvm
+
+passo "Volumes lógicos"
+pvcreate -ff -y /dev/mapper/cryptlvm
+vgcreate vg /dev/mapper/cryptlvm
+lvcreate -y -L "$SWAP" vg -n swap
+lvcreate -y -L "$ROOT" vg -n root
+lvcreate -y -l 100%FREE vg -n home
+
+passo "Sistemas de arquivos"
+mkfs.ext4 -F /dev/vg/root
+mkfs.ext4 -F /dev/vg/home
+mkswap /dev/vg/swap
+mkfs.fat -F32 "$P2"
+mount /dev/vg/root /mnt
+mount --mkdir /dev/vg/home /mnt/home
+mount --mkdir "$P2" /mnt/efi
+swapon /dev/vg/swap
+
+passo "Sistema base com kernel zen"
+pacstrap -K /mnt base linux-zen linux-zen-headers linux-firmware intel-ucode sof-firmware \
+  mkinitcpio lvm2 grub efibootmgr networkmanager sudo neovim git zsh
+genfstab -U /mnt >> /mnt/etc/fstab
+sed -i 's/relatime/noatime/' /mnt/etc/fstab
+
+passo "Configuração"
+ln -sf /usr/share/zoneinfo/America/Fortaleza /mnt/etc/localtime
+sed -i 's/^#pt_BR.UTF-8/pt_BR.UTF-8/; s/^#en_US.UTF-8/en_US.UTF-8/' /mnt/etc/locale.gen
+echo LANG=pt_BR.UTF-8 > /mnt/etc/locale.conf
+echo KEYMAP=br-abnt2 > /mnt/etc/vconsole.conf
+mkdir -p /mnt/etc/X11/xorg.conf.d
+printf 'Section "InputClass"\n  Identifier "teclado"\n  MatchIsKeyboard "on"\n  Option "XkbLayout" "br"\n  Option "XkbModel" "abnt2"\nEndSection\n' > /mnt/etc/X11/xorg.conf.d/00-keyboard.conf
+echo "$MAQUINA" > /mnt/etc/hostname
+printf '127.0.0.1 localhost\n::1 localhost\n127.0.1.1 %s.localdomain %s\n' "$MAQUINA" "$MAQUINA" > /mnt/etc/hosts
+echo '%wheel ALL=(ALL:ALL) ALL' > /mnt/etc/sudoers.d/wheel
+chmod 440 /mnt/etc/sudoers.d/wheel
+mkdir -p /mnt/etc/systemd/logind.conf.d
+printf '[Login]\nHandleLidSwitch=ignore\nHandleLidSwitchExternalPower=ignore\nHandleLidSwitchDocked=ignore\n' > /mnt/etc/systemd/logind.conf.d/servidor.conf
+
+arch-chroot /mnt hwclock --systohc
+arch-chroot /mnt locale-gen
+arch-chroot /mnt useradd -m -G wheel -s /bin/bash "$USUARIO"
+printf '%s:%s\n' "$USUARIO" "$SENHA_USUARIO" | arch-chroot /mnt chpasswd
+unset SENHA_USUARIO
+arch-chroot /mnt passwd -l root
+arch-chroot /mnt systemctl enable NetworkManager
+
+passo "Chave no initramfs (senha pedida só uma vez, no GRUB)"
+mkdir -m 700 /mnt/root/secrets
+head -c 64 /dev/urandom > "/mnt$KEYFILE"
+chmod 600 "/mnt$KEYFILE"
+printf '%s' "$SENHA_DISCO" | cryptsetup luksAddKey --key-file=- -i 1 "$P3" "/mnt$KEYFILE"
+unset SENHA_DISCO
+sed -i "s/^HOOKS=.*/$HOOKS/; s|^FILES=.*|FILES=($KEYFILE)|" /mnt/etc/mkinitcpio.conf
+arch-chroot /mnt mkinitcpio -P
+
+passo "GRUB"
+UUID="$(blkid -s UUID -o value "$P3")"
+sed -i 's/^#\?GRUB_ENABLE_CRYPTODISK=.*/GRUB_ENABLE_CRYPTODISK=y/' /mnt/etc/default/grub
+sed -i "s|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"cryptdevice=UUID=$UUID:cryptlvm root=/dev/vg/root cryptkey=rootfs:$KEYFILE\"|" /mnt/etc/default/grub
+arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/efi --bootloader-id=arch
+# Cópia no caminho padrão, para firmware que ignora a entrada de boot.
+arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/efi --removable
+arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
+chmod 700 /mnt/boot
+
+passo "Dotfiles"
+arch-chroot /mnt runuser -u "$USUARIO" -- mkdir -p "/home/$USUARIO/Documents"
+arch-chroot /mnt runuser -u "$USUARIO" -- git clone -b "$BRANCH" "$REPO_URL" "/home/$USUARIO/Documents/dotfiles"
+sed -i "s#/home/arthur#/home/$USUARIO#" "/mnt/home/$USUARIO/Documents/dotfiles/.config/wal/templates/flameshot.ini"
+install -o 1000 -g 1000 -m 644 "/mnt/home/$USUARIO/Documents/dotfiles/pacotes/primeiro-login" "/mnt/home/$USUARIO/.bash_profile"
+
+limpa
+printf '\nPronto. Tire o pen drive e rode: reboot\n'
+printf 'O GRUB pede a senha do disco e demora alguns segundos. Depois entre como %s.\n' "$USUARIO"

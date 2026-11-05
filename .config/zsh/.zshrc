@@ -20,8 +20,6 @@ plugins=(git sudo)
 # Load the Oh-My-Zsh shell script
 source $ZSH/oh-my-zsh.sh
 
-# Set the display to use X11 protocol
-export DISPLAY=:0
 
 # Set the path of the history file for Zsh
 export HISTFILE=~/.cache/.zsh_history
@@ -51,12 +49,12 @@ bindkey "^[[1;5C" forward-word
 bindkey "^[[1;5D" backward-word
 
 # Define some commonly used aliases
-alias ls="exa --icons --group-directories-first"
+alias ls="eza --icons --group-directories-first"
 alias cp="cp -iv"
 alias mv='mv -iv'
 alias rm='rm -iv'
 alias c="clear"
-alias syu="sudo pacman -Syu && pkill -RTMIN+8 dwmblocks"
+alias syu="yay -Syu && pkill -RTMIN+8 dwmblocks"
 alias s="sudo pacman -S"
 alias ss="pacman -Ss"
 alias r="sudo pacman -Rsn"

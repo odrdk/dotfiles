@@ -25,7 +25,7 @@ Setup / DWM
 </div>
 
 ```
-Distro          -> Artix Linux
+Distro          -> Arch Linux
 Editor          -> NeoVim
 Browser         -> Firefox 
 Shell           -> zsh

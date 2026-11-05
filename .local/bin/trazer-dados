@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Copia do HD (clone do Windows) o que o painel precisa. HD montado só para leitura.
+set -euo pipefail
+
+PONTO=/mnt/windows
+ORIGEM="$PONTO/Users/Arthur Franco"
+
+erro() { printf 'ERRO: %s\n' "$1" >&2; exit 1; }
+
+HD="$(lsblk -dnpo NAME,MODEL | awk 'toupper($0) ~ /WDC|WD10SPZX/ {print $1}')"
+[ -n "$HD" ] || erro "HD WD não encontrado. Desligue, conecte o HD e tente de novo."
+
+PARTICAO="$(lsblk -bnpro NAME,FSTYPE,SIZE "$HD" | awk '$2=="ntfs" {print $3, $1}' | sort -n | tail -1 | cut -d' ' -f2)"
+[ -n "$PARTICAO" ] || erro "partição NTFS não encontrada em $HD."
+
+sudo mkdir -p "$PONTO"
+sudo mount -t ntfs3 -o ro,uid="$(id -u)",gid="$(id -g)" "$PARTICAO" "$PONTO"
+trap 'sudo umount "$PONTO"' EXIT
+
+[ -d "$ORIGEM/Documents/Arthur-OS" ] || erro "Arthur-OS não encontrado em $PARTICAO."
+
+copia() {
+  if [ -e "$2/$(basename "$1")" ]; then
+    echo "Já existe, pulando: $2/$(basename "$1")"
+  elif [ -e "$1" ]; then
+    echo "Copiando $(basename "$1")"
+    cp -r --preserve=timestamps "$1" "$2/"
+  fi
+}
+
+copia "$ORIGEM/Documents/Arthur-OS" "$HOME/Documents"
+copia "$ORIGEM/.cloudflared" "$HOME"
+copia "$ORIGEM/.claude" "$HOME"
+copia "$ORIGEM/.android" "$HOME"
+chmod -R go-rwx "$HOME/.cloudflared" "$HOME/.claude" 2>/dev/null || true
+
+echo "Pronto. Continue com: cd ~/Documents/Arthur-OS && claude"

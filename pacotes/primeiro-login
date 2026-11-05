@@ -1,0 +1,11 @@
+# Roda só no primeiro login: conecta a rede, instala tudo e abre o dwm.
+if [ ! -e "$HOME/.config/.dotfiles-instalados" ] && [ "${XDG_VTNR:-0}" = 1 ]; then
+  until ping -c 1 -W 3 archlinux.org >/dev/null 2>&1; do
+    nmtui connect
+  done
+  if "$HOME/Documents/dotfiles/install"; then
+    touch "$HOME/.config/.dotfiles-instalados"
+    exec zsh -l
+  fi
+  echo "A instalação falhou. Corrija e rode: ~/Documents/dotfiles/install"
+fi
