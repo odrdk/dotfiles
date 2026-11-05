@@ -1,6 +1,6 @@
 # Instalação do Arch no SSD
 
-Máquina: Lenovo 81FE. Usuário `arthur`, hostname `arthos`, kernel `linux-zen`.
+Máquina: Lenovo 81FE. Usuário `odrdk`, hostname `odrdk`, kernel `linux-zen`.
 Disco: LVM sobre LUKS1 com `/boot` criptografado (GRUB), seguindo o guia
 [Trigus42](https://gist.github.com/Trigus42/dfb40fe12407d4f29e30d26ca11495f6).
 
@@ -21,7 +21,7 @@ loadkeys br-abnt2
 curl -fsSL https://raw.githubusercontent.com/odrdk/dotfiles/arch-2026/arch-instalar -o i && bash i
 ```
 
-4. Digite `APAGAR`, escolha o usuário (Enter usa `arthur`) e crie as duas senhas.
+4. Digite `APAGAR`, escolha o usuário (Enter usa `odrdk`) e crie as duas senhas.
 5. Ao terminar, tire o pen drive e rode `reboot`.
 
 **Senha do disco:** só letras e números, 12 ou mais caracteres. O GRUB lê em
@@ -31,7 +31,7 @@ Guarde fora do PC: sem ela, o SSD fica inacessível.
 ## Primeiro boot
 
 O GRUB pede a senha do disco e demora alguns segundos para abrir. Entre como
-`arthur`: o primeiro login instala tudo e abre o dwm.
+`odrdk`: o primeiro login instala tudo e abre o dwm.
 
 ## Trazer os dados
 

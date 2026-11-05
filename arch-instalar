@@ -4,8 +4,8 @@
 # Recusa rodar se o HD WD estiver conectado.
 set -euo pipefail
 
-USUARIO=arthur
-MAQUINA=arthos
+USUARIO=odrdk
+MAQUINA=odrdk
 REPO_URL=https://github.com/odrdk/dotfiles
 BRANCH=arch-2026
 SWAP=8G
@@ -154,7 +154,7 @@ chmod 700 /mnt/boot
 passo "Dotfiles"
 arch-chroot /mnt runuser -u "$USUARIO" -- mkdir -p "/home/$USUARIO/Documents"
 arch-chroot /mnt runuser -u "$USUARIO" -- git clone -b "$BRANCH" "$REPO_URL" "/home/$USUARIO/Documents/dotfiles"
-sed -i "s#/home/arthur#/home/$USUARIO#" "/mnt/home/$USUARIO/Documents/dotfiles/.config/wal/templates/flameshot.ini"
+sed -i "s#/home/odrdk#/home/$USUARIO#" "/mnt/home/$USUARIO/Documents/dotfiles/.config/wal/templates/flameshot.ini"
 install -o 1000 -g 1000 -m 644 "/mnt/home/$USUARIO/Documents/dotfiles/pacotes/primeiro-login" "/mnt/home/$USUARIO/.bash_profile"
 
 limpa
