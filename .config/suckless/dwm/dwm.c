@@ -2517,7 +2517,7 @@ updatestatus(void) {
 			text = s + 1;  // Move to next part
 		}
 	}
-	statusw += TEXTW(text) - lrpad + 2;
+	statusw += TEXTW(text) - lrpad + 12; // mesma folga do desenho em drawbar(), senão o ícone cobre o separador
 
 	for (m = mons; m; m = m->next) {
 		drawbar(m);
