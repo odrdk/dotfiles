@@ -149,6 +149,13 @@ if [[ $modo == foto ]]; then   # preenche 1920x1080 sem distorcer; -level clarei
       -trim +repage -filter Lanczos -resize "$(esc "${LOGO_LARGURA:-160}")x" "$tmp/logo.png"
     read -r lw lh < <(magick identify -format '%w %h' "$tmp/logo.png")
     IFS=, read -r cx cy <<< "${LOGO_CENTRO:-960,540}"; cx=$(esc "$cx"); cy=$(esc "$cy")
+    # O menu é centralizado na tela: desliza a imagem para o ponto do logo cair no meio e os dois alinharem.
+    if (( cx != FW / 2 )); then
+      cor=$(magick "$TEMA/fundo.png" -format '%[pixel:p{5,5}]' info:)
+      magick "$TEMA/fundo.png" -background "$cor" -gravity northwest \
+        -extent "${FW}x${FH}$(printf '%+d' $(( cx - FW / 2 )))+0" +repage "$TEMA/fundo.png"
+      cx=$(( FW / 2 ))
+    fi
     magick "$TEMA/fundo.png" "$tmp/logo.png" -gravity northwest -geometry "+$(( cx - lw / 2 ))+$(( cy - lh / 2 ))"       -compose over -composite "$TEMA/fundo.png"
   fi
 else
