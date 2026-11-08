@@ -140,8 +140,11 @@ if [[ $modo == foto ]]; then   # preenche 1920x1080 sem distorcer; -level clarei
   fi
   if [[ $LOGO == arch ]]; then   # logo pequeno no meio da tela (no vão entre as mãos da imagem de referência)
     l=$(logo_arch); b='\'; l=${l//"$b"/"$b$b"}; l=${l//%/%%}
-    magick -background none -font "$mono" -pointsize 11 -interline-spacing 0 -fill '#f2f2f2' label:" $l" "$tmp/logo.png"
-    magick "$TEMA/fundo.png" "$tmp/logo.png" -gravity north -geometry "${LOGO_POS:-+2+352}" -compose over -composite "$TEMA/fundo.png"
+    # Recorta as sobras do label, ajusta a largura e encaixa o centro do logo em LOGO_CENTRO (px de 1920x1080).
+    magick -background none -font "$mono" -pointsize 24 -interline-spacing 0 -fill '#f2f2f2' label:" $l"       -trim +repage -resize "${LOGO_LARGURA:-170}x" "$tmp/logo.png"
+    read -r lw lh < <(magick identify -format '%w %h' "$tmp/logo.png")
+    IFS=, read -r cx cy <<< "${LOGO_CENTRO:-960,540}"
+    magick "$TEMA/fundo.png" "$tmp/logo.png" -gravity northwest -geometry "+$(( cx - lw / 2 ))+$(( cy - lh / 2 ))"       -compose over -composite "$TEMA/fundo.png"
   fi
 else
 ponto=18; espaco=3
