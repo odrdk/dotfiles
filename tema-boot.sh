@@ -4,7 +4,9 @@
 set -euo pipefail
 [[ $EUID -eq 0 ]] || { echo "Rode com sudo: sudo bash tema-boot.sh"; exit 1; }
 
-TEMA=/boot/grub/themes/cohle
+TEMA=/boot/grub/themes/genese   # "gênese": as mãos da Criação de Adão com o Arch no ponto do toque
+# Nome antigo deste mesmo script; sai para não ficar tema órfão em /boot.
+[[ -f /boot/grub/themes/cohle/theme.txt ]] && rm -rf /boot/grub/themes/cohle
 NOME=${NOME:-Arthos}
 
 pacman -S --needed --noconfirm grub freetype2 fontconfig imagemagick python os-prober >/dev/null
@@ -85,7 +87,7 @@ logo_arch() { # -L só o logo; sed tira cores e comandos de cursor que o neofetc
   printf '%s\n' "$l"
 }
 FUNDO=${FUNDO:-}     # FUNDO=/caminho/imagem.png usa a imagem pronta como fundo, em preto e branco, menu centralizado
-modo=cohle
+modo=neovim
 if [[ -n $FUNDO ]]; then
   [[ -f $FUNDO ]] || { echo "Imagem não encontrada: $FUNDO"; exit 1; }
   modo=foto; LAYOUT=centro
@@ -171,7 +173,7 @@ ponto=18; espaco=3
 desenha() { # label: lê % e \ como comandos; dobrar deixa literal. Espaço na frente impede o @ inicial de virar "ler arquivo".
   local b='\' t; t=${2//"$b"/"$b$b"}; t=${t//%/%%}
   magick -background none -font "$mono" -pointsize "$ponto" -interline-spacing "$espaco" -fill "$1" label:" ${t}" "$3"; }
-if [[ $modo == cohle ]]; then   # dois tons: @&%# claros, o resto escuro
+if [[ $modo == neovim ]]; then   # dois tons: @&%# claros, o resto escuro
   desenha '#3e3e44' "$(sed 's/[@&%#]/ /g' <<< "$arte")" "$tmp/claro.png"
   desenha '#85858d' "$(sed 's/[^@&%#]/ /g' <<< "$arte")" "$tmp/denso.png"
 else                            # um tom só: logo e ASCII de foto usam letras como tinta
@@ -183,12 +185,12 @@ read -r w h < <(magick identify -format '%w %h' "$tmp/arte.png")
 
 fundo="'#1b1b1e'-'#09090a'"; esq=1; some=1
 case $modo in
-  cohle) esq=$(( w * 35 / 100 )); grav=east; geo=+110+0 ;;
+  neovim) esq=$(( w * 35 / 100 )); grav=east; geo=+110+0 ;;
   cheio) grav=south; geo=+0+130
          [[ $LAYOUT == centro ]] && { some=0; grav=center; geo=+0+0; fundo="'#0e0e10'-'#060607'"; } ;;
   logo)  some=0; grav=north; geo=+0+150; fundo="'#2a2a2d'-'#141416'" ;;
 esac
-if (( some )); then   # some pela esquerda (só o Cohle) e pelo pé
+if (( some )); then   # some pela esquerda (só a arte do Neovim) e pelo pé
   magick -size "${w}x${h}" -define gradient:vector=0,0,$esq,0 gradient:black-white \
     \( -size "${w}x${h}" -define gradient:vector=0,$h,0,$(( h * 78 / 100 )) gradient:black-white \) \
     -compose multiply -composite "$tmp/mascara.png"
