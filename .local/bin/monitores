@@ -1,0 +1,13 @@
+#!/bin/sh
+# Dois monitores de 144 Hz quando existem; em VM, 1920x1080; senão, a resolução nativa da saída conectada.
+if xrandr | grep -q "^DP-0 connected"; then
+  xrandr --output DP-0 --mode 1920x1080 --rate 144 --primary \
+         --output DP-2 --mode 1920x1080 --rate 144 --left-of DP-0
+else
+  saida=$(xrandr | awk '/ connected/{print $1; exit}')
+  if systemd-detect-virt -q; then
+    xrandr --output "$saida" --mode 1920x1080
+  else
+    xrandr --output "$saida" --auto
+  fi
+fi

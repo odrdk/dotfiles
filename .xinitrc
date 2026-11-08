@@ -37,10 +37,11 @@ export XCURSOR_SIZE=20
 # Startup applications and daemons
 # ------------------------------
 # Restore wallpaper (pywal)
+monitores  # resolução antes do wallpaper
 wal -R &
 
 # Compositor with experimental backends (transparency, blur)
-picom &
+if [ -e /dev/dri/renderD128 ]; then picom & else picom --config ~/.config/picom/picom-vm.conf & fi  # sem GPU (VM sem 3D) o glx congela a tela
 
 # Notification daemon
 dunst &
@@ -85,8 +86,6 @@ updnotify &
 # Display configuration
 # ------------------------------
 # Configure dual-monitor setup
-xrandr --output DP-0 --mode 1920x1080 --rate 144 --primary \
-       --output DP-2 --mode 1920x1080 --rate 144 --left-of DP-0
 
 # ------------------------------
 # Launch dwm with ssh-agent
