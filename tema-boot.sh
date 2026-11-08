@@ -16,8 +16,8 @@ echo ">> Fonte: $texto"
 
 rm -rf "$TEMA"; mkdir -p "$TEMA"
 grub-mkfont -s 26 -o "$TEMA/titulo.pf2" "$texto"
-grub-mkfont -s 18 -o "$TEMA/menu.pf2" "$texto"
-grub-mkfont -s 13 -o "$TEMA/rodape.pf2" "$texto"
+grub-mkfont -s 16 -o "$TEMA/menu.pf2" "$texto"
+grub-mkfont -s 12 -o "$TEMA/rodape.pf2" "$texto"
 
 nome_pf2() { python3 - "$1" <<'PY'
 import sys, struct
@@ -209,12 +209,13 @@ rm "$TEMA/caixa.png"
 if [[ $LAYOUT == centro ]]; then
   saudacao=""
   # Medido em 1366x768, 1920x1080 e 2560x1440: menu entre o logo e o rodapé, longe das mãos.
-  menu_pos="left = 50%-220 top = $([[ $modo == logo ]] && echo 66% || echo 64%) width = 440 height = 24%"
+  menu_pos="left = 50%-200 top = $([[ $modo == logo ]] && echo 66% || echo 68%) width = 400 height = 22%"
+  rod1="100%-60"; rod2="100%-34"
   rod_pos='left = 0 width = 100% align = "center"'
 else
   saudacao="+ label { left = 7% top = 7% width = 40% height = 40 font = \"$ft\" color = \"#e6e6e8\" text = \"Bem-vindo de volta, $NOME . . .\" }"
   menu_pos="left = 7%-12 top = 18% width = 34% height = 50%"
-  rod_pos="left = 7% width = 40%"
+  rod_pos="left = 7% width = 40%"; rod1="100%-84"; rod2="100%-52"
 fi
 
 cat > "$TEMA/theme.txt" <<TEMA
@@ -232,13 +233,13 @@ $saudacao
   item_font = "$fm" item_color = "#8e8e94"
   selected_item_font = "$fm" selected_item_color = "#ffffff"
   selected_item_pixmap_style = "select_*.png"
-  item_height = 34 item_padding = 12 item_spacing = 8
+  item_height = 30 item_padding = 10 item_spacing = 10
   icon_width = 0 icon_height = 0 item_icon_space = 0
   scrollbar = false
 }
 
-+ label { $rod_pos top = 100%-84 height = 20 font = "$fr" color = "#8e8e94" text = "[E] Editar entrada   [C] Linha de comando" }
-+ label { id = "__timeout__" $rod_pos top = 100%-52 height = 20 font = "$fr" color = "#c8c8cc" text = "Iniciando em %d segundos..." }
++ label { $rod_pos top = $rod1 height = 20 font = "$fr" color = "#8e8e94" text = "[E] Editar entrada   [C] Linha de comando" }
++ label { id = "__timeout__" $rod_pos top = $rod2 height = 20 font = "$fr" color = "#c8c8cc" text = "Iniciando em %d segundos..." }
 TEMA
 
 def() { # troca ou acrescenta uma chave do /etc/default/grub
