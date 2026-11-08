@@ -15,10 +15,10 @@ else
 fi
 
 case $BLOCK_BUTTON in
-    1) xdotool key --clearmodifiers "Super_L+F6"; kill -41 $(pidof dwmblocks) ;;
-    2) statusmic mute ;;
+    2) xdotool key --clearmodifiers "Super_L+F6"; kill -43 $(pidof dwmblocks) ;;
+    1) statusmic mute ;;
     3) notify-send " Microphone module" "- Shows volume ,  if muted.
-- Middle click to mute." ;;
+- Left click mutes or unmutes. Middle click opens the mixer." ;;
     4) statusmic up ;;
     5) statusmic down ;;
     6) st -e nvim "$0" ;;
