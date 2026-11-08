@@ -144,7 +144,8 @@ for program in "${programs[@]}"; do
         ) &
         spinner_pid=$!
 
-        yay -S "$program" --noconfirm &> /dev/null
+        # DISPLAY vazio: o instalador .run do smi-usbdisplay (makeself) tenta abrir um xterm quando acha o X.
+        DISPLAY= yay -S "$program" --noconfirm &> /dev/null
 
         kill $spinner_pid &>/dev/null
         wait $spinner_pid 2>/dev/null
