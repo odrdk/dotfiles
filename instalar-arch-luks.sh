@@ -8,7 +8,7 @@
 # Disco com modelo MODELO_PROTEGIDO ou com partição NTFS é recusado: é onde mora o Windows.
 set -euo pipefail
 
-NOME_MAQUINA=${NOME_MAQUINA:-arthos}
+NOME_MAQUINA=${NOME_MAQUINA:-arthos-pc} # diferente do usuário, para o prompt não confundir
 USUARIO=${USUARIO:-arthos}
 KERNEL_EXTRA=${KERNEL_EXTRA:-} # teste em VM: KERNEL_EXTRA=console=ttyS0
 DOTFILES_REPO=${DOTFILES_REPO-https://github.com/odrdk/dotfiles}
