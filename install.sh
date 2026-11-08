@@ -408,7 +408,7 @@ sleep 1 && clear
 
 case $answer in
   [Yy]*)
-    repo_url="https://github.com/scarsandtears/wallpapers.git"
+    repo_url="https://github.com/odrdk/wallpapers.git"
     parent_dir="$HOME/Pictures"
     destination_dir="$parent_dir/wallpapers"
 
