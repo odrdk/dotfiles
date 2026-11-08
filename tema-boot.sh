@@ -134,7 +134,20 @@ tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 if [[ $modo == foto ]]; then   # preenche 1920x1080 sem distorcer; -level clareia o cinza que sobra da cor
   # 2560x1440: o GRUB só reduz nas telas menores (nítido no LG); posições abaixo seguem em escala 1920x1080.
   FW=2560; FH=1440; esc() { echo $(( $1 * FW / 1920 )); }
-  magick "$FUNDO" -resize ${FW}x${FH}^ -gravity center -extent ${FW}x${FH} -colorspace gray -level 0%,60% "$TEMA/fundo.png"
+  # O menu é centralizado na tela: o ponto do logo também precisa cair no centro. Amplia o mínimo que
+  # permite recortar com esse ponto no meio sem sobrar borda vazia (deslizar deixava uma faixa sem imagem).
+  zoom=1; px=$(( FW / 2 )); py=$(( FH / 2 ))
+  if [[ $LOGO == arch ]]; then
+    IFS=, read -r px py <<< "${LOGO_CENTRO:-960,540}"; px=$(esc "$px"); py=$(esc "$py")
+    zoom=$(awk -v p="$px" -v W="$FW" 'BEGIN { d = p - W / 2; if (d < 0) d = -d; printf "%.5f", (W / 2) / (W / 2 - d) }')
+  fi
+  read -r nw nh x0 y0 cy_logo < <(awk -v z="$zoom" -v W="$FW" -v H="$FH" -v p="$px" -v q="$py" 'BEGIN {
+    nw = int(W * z + 0.999); nh = int(H * z + 0.999)
+    x0 = int(p * z - W / 2 + 0.5); if (x0 < 0) x0 = 0; if (x0 > nw - W) x0 = nw - W
+    y0 = int((nh - H) / 2)
+    print nw, nh, x0, y0, int(q * z - y0 + 0.5) }')
+  magick "$FUNDO" -resize "${nw}x${nh}^" -gravity center -extent "${nw}x${nh}" +repage \
+    +gravity -crop "${FW}x${FH}+${x0}+${y0}" +repage -colorspace gray -level 0%,60% "$TEMA/fundo.png"
   if (( ${DESLOCA:-0} != 0 )); then   # DESLOCA=-60 puxa a parte esquerda (até CORTE% da largura) para o lado
     corte=$(( FW * ${CORTE:-52} / 100 ))
     cor=$(magick "$TEMA/fundo.png" -format '%[pixel:p{5,5}]' info:)
@@ -148,14 +161,7 @@ if [[ $modo == foto ]]; then   # preenche 1920x1080 sem distorcer; -level clarei
     magick -background none -font "$negrito" -pointsize 56 -interline-spacing 0 -fill '#f2f2f2' label:" $l" \
       -trim +repage -filter Lanczos -resize "$(esc "${LOGO_LARGURA:-160}")x" "$tmp/logo.png"
     read -r lw lh < <(magick identify -format '%w %h' "$tmp/logo.png")
-    IFS=, read -r cx cy <<< "${LOGO_CENTRO:-960,540}"; cx=$(esc "$cx"); cy=$(esc "$cy")
-    # O menu é centralizado na tela: desliza a imagem para o ponto do logo cair no meio e os dois alinharem.
-    if (( cx != FW / 2 )); then
-      cor=$(magick "$TEMA/fundo.png" -format '%[pixel:p{5,5}]' info:)
-      magick "$TEMA/fundo.png" -background "$cor" -gravity northwest \
-        -extent "${FW}x${FH}$(printf '%+d' $(( cx - FW / 2 )))+0" +repage "$TEMA/fundo.png"
-      cx=$(( FW / 2 ))
-    fi
+    cx=$(( FW / 2 )); cy=$cy_logo   # o recorte acima já trouxe o ponto do logo para o centro
     magick "$TEMA/fundo.png" "$tmp/logo.png" -gravity northwest -geometry "+$(( cx - lw / 2 ))+$(( cy - lh / 2 ))"       -compose over -composite "$TEMA/fundo.png"
   fi
 else
