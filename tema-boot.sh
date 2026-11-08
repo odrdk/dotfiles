@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Tema "cohle" do GRUB: menu à esquerda, Rust Cohle (arte do dashboard do Neovim) em ASCII ao fundo.
-# Uso: sudo bash tema-boot.sh
+# Tema do GRUB em ASCII. Padrão: arte do dashboard do Neovim à direita, menu à esquerda.
+# Uso: sudo bash tema-boot.sh   |   sudo LOGO=arch bash tema-boot.sh   |   sudo IMAGEM=foto.png INVERTE=1 LAYOUT=centro bash tema-boot.sh
 set -euo pipefail
 [[ $EUID -eq 0 ]] || { echo "Rode com sudo: sudo bash tema-boot.sh"; exit 1; }
 
@@ -9,16 +9,15 @@ NOME=${NOME:-Arthos}
 
 pacman -S --needed --noconfirm grub freetype2 fontconfig imagemagick python os-prober >/dev/null
 
-# Comfortaa é a fonte do exemplo; sem ela, Noto Sans. A arte sempre em mono.
-texto=$(fc-list : file family | grep -i -m1 'comfortaa' | cut -d: -f1 || true)
-[[ -n $texto ]] || texto=$(fc-match -f '%{file}' 'Noto Sans:style=Regular')
+# JetBrains Mono em tudo: menu, rodapé e arte.
 mono=$(fc-match -f '%{file}' 'JetBrainsMono Nerd Font Mono:style=Regular')
-echo ">> Fonte do menu: $texto"
+texto=$mono
+echo ">> Fonte: $texto"
 
 rm -rf "$TEMA"; mkdir -p "$TEMA"
-grub-mkfont -s 28 -o "$TEMA/titulo.pf2" "$texto"
-grub-mkfont -s 19 -o "$TEMA/menu.pf2" "$texto"
-grub-mkfont -s 14 -o "$TEMA/rodape.pf2" "$texto"
+grub-mkfont -s 26 -o "$TEMA/titulo.pf2" "$texto"
+grub-mkfont -s 18 -o "$TEMA/menu.pf2" "$texto"
+grub-mkfont -s 13 -o "$TEMA/rodape.pf2" "$texto"
 
 nome_pf2() { python3 - "$1" <<'PY'
 import sys, struct
@@ -75,13 +74,24 @@ ARTE
 
 # IMAGEM=/caminho/foto.png troca a arte do Neovim por ASCII gerado da imagem (tinta escura vira caractere denso).
 IMAGEM=${IMAGEM:-}
-ARTE=${ARTE:-}   # ARTE=/caminho/arte.txt usa um ASCII pronto (um tom só, tela cheia)
-if [[ -n $ARTE ]]; then
+ARTE=${ARTE:-}       # ARTE=/caminho/arte.txt usa um ASCII pronto (um tom só, tela cheia)
+LOGO=${LOGO:-}       # LOGO=arch: logo do Arch tirado do neofetch instalado, centralizado
+INVERTE=${INVERTE:-0} # INVERTE=1: parte clara da imagem vira caractere denso (desenho claro em fundo escuro)
+LAYOUT=${LAYOUT:-}   # LAYOUT=centro: sem saudação, menu centralizado embaixo, arte sem sombra
+modo=cohle
+if [[ $LOGO == arch ]]; then
+  command -v neofetch >/dev/null || { echo "Precisa do neofetch: yay -S neofetch"; exit 1; }
+  # -L só o logo; sed tira cores e comandos de cursor que o neofetch manda junto.
+  arte=$(neofetch --config none -L --ascii_distro arch 2>/dev/null | sed 's/\x1b\[[0-9;?]*[a-zA-Z]//g; s/[[:space:]]*$//' | sed '/^$/d')
+  [[ -n $arte ]] || { echo "O neofetch não devolveu o logo."; exit 1; }
+  modo=logo; LAYOUT=centro
+elif [[ -n $ARTE ]]; then
   [[ -f $ARTE ]] || { echo "Arquivo não encontrado: $ARTE"; exit 1; }
   arte=$(sed 's/[[:space:]]*$//' "$ARTE")
   COLUNAS=$(awk '{ if (length > m) m = length } END { print m }' <<< "$arte")
-  IMAGEM=$ARTE   # mesmo layout de tela cheia do modo imagem
+  modo=cheio
 elif [[ -n $IMAGEM ]]; then
+  modo=cheio
   [[ -f $IMAGEM ]] || { echo "Imagem não encontrada: $IMAGEM"; exit 1; }
   COLUNAS=${COLUNAS:-160}
   arte=$(magick "$IMAGEM" -colorspace gray -auto-level -depth 8 pgm:- | python3 -c '
@@ -106,33 +116,48 @@ for r in range(rows):
         for y in range(y0, y1, max(1, (y1 - y0) // 4)):
             for x in range(x0, x1, max(1, (x1 - x0) // 4)):
                 soma += px[y * w + x]; n += 1
-        tinta = 1 - soma / n / 255
+        tinta = soma / n / 255 if sys.argv[2] == "1" else 1 - soma / n / 255
         linha.append(rampa[min(len(rampa) - 1, int(tinta * len(rampa)))])
     print("".join(linha).rstrip())
-' "$COLUNAS")
+' "$COLUNAS" "$INVERTE")
 fi
 
-# Fundo 1920x1080 (o GRUB estica para a tela). Arte em dois tons: @&%# claros, o resto escuro,
-# sumindo na borda esquerda e no pé para se misturar ao fundo.
+# Fundo 1920x1080 (o GRUB estica para a tela).
 tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
-ponto=18; espaco=3; [[ -n $IMAGEM ]] && { ponto=$(( 1920 * 10 / 6 / COLUNAS )); espaco=0; }
+ponto=18; espaco=3
+[[ $modo == cheio ]] && { ponto=$(( 1920 * 10 / 6 / COLUNAS )); espaco=0; }
+[[ $modo == logo ]] && { ponto=22; espaco=2; }
 desenha() { # label: lê % e \ como comandos; dobrar deixa literal. Espaço na frente impede o @ inicial de virar "ler arquivo".
   local b='\' t; t=${2//"$b"/"$b$b"}; t=${t//%/%%}
   magick -background none -font "$mono" -pointsize "$ponto" -interline-spacing "$espaco" -fill "$1" label:" ${t}" "$3"; }
-if [[ -n $ARTE ]]; then   # ASCII de foto usa letras como tinta: separar @&%# apagaria quase tudo
-  desenha '#00000000' " " "$tmp/claro.png"; desenha '#85858d' "$arte" "$tmp/denso.png"
-else
+if [[ $modo == cohle ]]; then   # dois tons: @&%# claros, o resto escuro
   desenha '#3e3e44' "$(sed 's/[@&%#]/ /g' <<< "$arte")" "$tmp/claro.png"
   desenha '#85858d' "$(sed 's/[^@&%#]/ /g' <<< "$arte")" "$tmp/denso.png"
+else                            # um tom só: logo e ASCII de foto usam letras como tinta
+  desenha '#00000000' " " "$tmp/claro.png"
+  desenha "$([[ $modo == logo ]] && echo '#eeeeee' || echo '#a8a8ae')" "$arte" "$tmp/denso.png"
 fi
 magick "$tmp/claro.png" "$tmp/denso.png" -background none -layers merge "$tmp/arte.png"
 read -r w h < <(magick identify -format '%w %h' "$tmp/arte.png")
-esq=$(( w * 35 / 100 )); [[ -n $IMAGEM ]] && esq=1   # imagem cheia não some pela esquerda
-magick -size "${w}x${h}" -define gradient:vector=0,0,$esq,0 gradient:black-white   \( -size "${w}x${h}" -define gradient:vector=0,$h,0,$(( h * 78 / 100 )) gradient:black-white \)   -compose multiply -composite "$tmp/mascara.png"
-magick "$tmp/arte.png" \( +clone -alpha extract "$tmp/mascara.png" -compose multiply -composite \)   -alpha off -compose CopyOpacity -composite "$tmp/arte.png"
-magick -size 1920x1080 radial-gradient:'#1b1b1e'-'#09090a' "$tmp/arte.png"   -gravity "$([[ -n $IMAGEM ]] && echo south || echo east)" -geometry "$([[ -n $IMAGEM ]] && echo +0+130 || echo +110+0)" -compose over -composite "$tmp/fundo.png"
-if [[ -n $IMAGEM ]]; then   # tela cheia: sombra à esquerda para o menu e o rodapé ficarem legíveis sobre a arte
-  magick "$tmp/fundo.png" \( -size 1920x1080 -define gradient:vector=0,0,900,0 gradient:'#09090ae6'-'#09090a00' \)     -compose over -composite "$TEMA/fundo.png"
+
+fundo="'#1b1b1e'-'#09090a'"; esq=1; some=1
+case $modo in
+  cohle) esq=$(( w * 35 / 100 )); grav=east; geo=+110+0 ;;
+  cheio) grav=south; geo=+0+130
+         [[ $LAYOUT == centro ]] && { some=0; grav=center; geo=+0+0; fundo="'#0e0e10'-'#060607'"; } ;;
+  logo)  some=0; grav=north; geo=+0+150; fundo="'#2a2a2d'-'#141416'" ;;
+esac
+if (( some )); then   # some pela esquerda (só o Cohle) e pelo pé
+  magick -size "${w}x${h}" -define gradient:vector=0,0,$esq,0 gradient:black-white \
+    \( -size "${w}x${h}" -define gradient:vector=0,$h,0,$(( h * 78 / 100 )) gradient:black-white \) \
+    -compose multiply -composite "$tmp/mascara.png"
+  magick "$tmp/arte.png" \( +clone -alpha extract "$tmp/mascara.png" -compose multiply -composite \) \
+    -alpha off -compose CopyOpacity -composite "$tmp/arte.png"
+fi
+eval "magick -size 1920x1080 radial-gradient:$fundo" '"$tmp/arte.png" -gravity "$grav" -geometry "$geo" -compose over -composite "$tmp/fundo.png"'
+if [[ $modo == cheio && $LAYOUT != centro ]]; then   # sombra à esquerda para o menu ficar legível sobre a arte
+  magick "$tmp/fundo.png" \( -size 1920x1080 -define gradient:vector=0,0,900,0 gradient:'#09090ae6'-'#09090a00' \) \
+    -compose over -composite "$TEMA/fundo.png"
 else
   cp "$tmp/fundo.png" "$TEMA/fundo.png"
 fi
@@ -145,6 +170,16 @@ for p in nw:6x6+0+0 n:12x6+6+0 ne:6x6+18+0 w:6x12+0+6 c:12x12+6+6 e:6x12+18+6 sw
 done
 rm "$TEMA/caixa.png"
 
+if [[ $LAYOUT == centro ]]; then
+  saudacao=""
+  menu_pos="left = 50%-260 top = $([[ $modo == logo ]] && echo 59% || echo 70%) width = 520 height = 26%"
+  rod_pos='left = 0 width = 100% align = "center"'
+else
+  saudacao="+ label { left = 7% top = 7% width = 40% height = 40 font = \"$ft\" color = \"#e6e6e8\" text = \"Bem-vindo de volta, $NOME . . .\" }"
+  menu_pos="left = 7%-12 top = 18% width = 34% height = 50%"
+  rod_pos="left = 7% width = 40%"
+fi
+
 cat > "$TEMA/theme.txt" <<TEMA
 title-text: ""
 desktop-image: "fundo.png"
@@ -153,20 +188,20 @@ terminal-font: "$fm"
 message-font: "$fm"
 message-color: "#c8c8cc"
 
-+ label { left = 7% top = 7% width = 40% height = 40 font = "$ft" color = "#e6e6e8" text = "Bem-vindo de volta, $NOME . . ." }
+$saudacao
 
 + boot_menu {
-  left = 7%-12 top = 18% width = 34% height = 50%
+  $menu_pos
   item_font = "$fm" item_color = "#8e8e94"
   selected_item_font = "$fm" selected_item_color = "#ffffff"
   selected_item_pixmap_style = "select_*.png"
-  item_height = 36 item_padding = 12 item_spacing = 10
+  item_height = 34 item_padding = 12 item_spacing = 8
   icon_width = 0 icon_height = 0 item_icon_space = 0
   scrollbar = false
 }
 
-+ label { left = 7% top = 100%-84 width = 40% height = 20 font = "$fr" color = "#8e8e94" text = "[E] Editar entrada   [C] Linha de comando" }
-+ label { id = "__timeout__" left = 7% top = 100%-52 width = 40% height = 20 font = "$fr" color = "#c8c8cc" text = "Iniciando em %d segundos..." }
++ label { $rod_pos top = 100%-84 height = 20 font = "$fr" color = "#8e8e94" text = "[E] Editar entrada   [C] Linha de comando" }
++ label { id = "__timeout__" $rod_pos top = 100%-52 height = 20 font = "$fr" color = "#c8c8cc" text = "Iniciando em %d segundos..." }
 TEMA
 
 def() { # troca ou acrescenta uma chave do /etc/default/grub
