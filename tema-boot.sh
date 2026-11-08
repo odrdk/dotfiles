@@ -5,7 +5,7 @@ set -euo pipefail
 [[ $EUID -eq 0 ]] || { echo "Rode com sudo: sudo bash tema-boot.sh"; exit 1; }
 
 TEMA=/boot/grub/themes/cohle
-NOME=${NOME:-Arthur}
+NOME=${NOME:-Arthos}
 
 pacman -S --needed --noconfirm grub freetype2 fontconfig imagemagick python os-prober >/dev/null
 
@@ -73,10 +73,17 @@ arte=$(cat <<'ARTE'
 ARTE
 )
 
-# Fundo 1920x1080 (o GRUB estica para a tela): vinheta escura + arte cinza encostada à direita.
-magick -size 1920x1080 radial-gradient:'#1b1b1e'-'#09090a' \
-  \( -background none -fill '#5c5c60' -font "$mono" -pointsize 18 -interline-spacing 3 label:"$arte" \) \
-  -gravity east -geometry +110+0 -composite "$TEMA/fundo.png"
+# Fundo 1920x1080 (o GRUB estica para a tela). Arte em dois tons: @&%# claros, o resto escuro,
+# sumindo na borda esquerda e no pé para se misturar ao fundo.
+tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
+desenha() { magick -background none -font "$mono" -pointsize 18 -interline-spacing 3 -fill "$1" label:"$2" "$3"; }
+desenha '#3e3e44' "$(sed 's/[@&%#]/ /g' <<< "$arte")" "$tmp/claro.png"
+desenha '#85858d' "$(sed 's/[^@&%#]/ /g' <<< "$arte")" "$tmp/denso.png"
+magick "$tmp/claro.png" "$tmp/denso.png" -background none -layers merge "$tmp/arte.png"
+read -r w h < <(magick identify -format '%w %h' "$tmp/arte.png")
+magick -size "${w}x${h}" -define gradient:vector=0,0,$(( w * 35 / 100 )),0 gradient:black-white   \( -size "${w}x${h}" -define gradient:vector=0,$h,0,$(( h * 78 / 100 )) gradient:black-white \)   -compose multiply -composite "$tmp/mascara.png"
+magick "$tmp/arte.png" \( +clone -alpha extract "$tmp/mascara.png" -compose multiply -composite \)   -alpha off -compose CopyOpacity -composite "$tmp/arte.png"
+magick -size 1920x1080 radial-gradient:'#1b1b1e'-'#09090a' "$tmp/arte.png"   -gravity east -geometry +110+0 -compose over -composite "$TEMA/fundo.png"
 
 # Caixa arredondada da seleção, fatiada em 9 pedaços.
 magick -size 24x24 xc:none -fill '#ffffff12' -stroke '#7a7a80' -strokewidth 1.5 \
