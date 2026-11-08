@@ -67,6 +67,9 @@ xsettingsd &
 # Keyboard layout: ABNT2 adaptado ao K86 (~/.local/bin/teclado)
 teclado &
 
+# VMware: copiar e colar com o Windows (open-vm-tools + gtkmm3). Em PC de verdade não roda.
+[ "$(systemd-detect-virt 2>/dev/null)" = vmware ] && vmware-user-suid-wrapper &
+
 # Screen locker daemon
 alwayslock &
 

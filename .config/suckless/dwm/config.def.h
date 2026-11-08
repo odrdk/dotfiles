@@ -199,6 +199,11 @@ static const Key keys[] = {
   { Mod1Mask,                             XK_F2,                          spawn,                     SHCMD("statusmic down") },
   { Mod1Mask,                             XK_F3,                          spawn,                     SHCMD("statusmic up") },
   { Mod1Mask,                             XK_z,                           spawn,                     SHCMD("statusmic mute") },
+  /* Ctrl+Alt como AltGr, igual ao Windows (K86 americano no ABNT2): / ? \ | */
+  { ControlMask|Mod1Mask,                 XK_q,                           spawn,                     SHCMD("xdotool type --clearmodifiers '/'") },
+  { ControlMask|Mod1Mask,                 XK_w,                           spawn,                     SHCMD("xdotool type --clearmodifiers '?'") },
+  { ControlMask|Mod1Mask,                 XK_z,                           spawn,                     SHCMD("xdotool type --clearmodifiers '\\'") },
+  { ControlMask|Mod1Mask|ShiftMask,       XK_z,                           spawn,                     SHCMD("xdotool type --clearmodifiers '|'") },
   { 0,                                    XF86XK_MonBrightnessUp,         spawn,                     SHCMD("statusbrightness up") },
   { 0,                                    XF86XK_MonBrightnessDown,       spawn,                     SHCMD("statusbrightness down") },
   { 0,                                    XF86XK_AudioPlay,               spawn,                     SHCMD("playerctlstatus play-pause") },
