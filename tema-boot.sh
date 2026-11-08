@@ -73,17 +73,52 @@ arte=$(cat <<'ARTE'
 ARTE
 )
 
+# IMAGEM=/caminho/foto.png troca a arte do Neovim por ASCII gerado da imagem (tinta escura vira caractere denso).
+IMAGEM=${IMAGEM:-}
+if [[ -n $IMAGEM ]]; then
+  [[ -f $IMAGEM ]] || { echo "Imagem não encontrada: $IMAGEM"; exit 1; }
+  COLUNAS=${COLUNAS:-160}
+  arte=$(magick "$IMAGEM" -colorspace gray -auto-level -depth 8 pgm:- | python3 -c '
+import sys
+d = sys.stdin.buffer.read()
+campos, i = [], 0
+while len(campos) < 4:                      # P5 largura altura maxval
+    while d[i:i+1].isspace(): i += 1
+    j = i
+    while not d[j:j+1].isspace(): j += 1
+    campos.append(d[i:j]); i = j
+i += 1
+w, h = int(campos[1]), int(campos[2]); px = d[i:]
+cols = int(sys.argv[1]); rows = max(1, round(cols * h / w * 0.5))   # célula de texto tem o dobro da altura
+rampa = " .,:;-=+*#%@"
+for r in range(rows):
+    y0, y1 = r * h // rows, max(r * h // rows + 1, (r + 1) * h // rows)
+    linha = []
+    for c in range(cols):
+        x0, x1 = c * w // cols, max(c * w // cols + 1, (c + 1) * w // cols)
+        soma = n = 0
+        for y in range(y0, y1, max(1, (y1 - y0) // 4)):
+            for x in range(x0, x1, max(1, (x1 - x0) // 4)):
+                soma += px[y * w + x]; n += 1
+        tinta = 1 - soma / n / 255
+        linha.append(rampa[min(len(rampa) - 1, int(tinta * len(rampa)))])
+    print("".join(linha).rstrip())
+' "$COLUNAS")
+fi
+
 # Fundo 1920x1080 (o GRUB estica para a tela). Arte em dois tons: @&%# claros, o resto escuro,
 # sumindo na borda esquerda e no pé para se misturar ao fundo.
 tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
-desenha() { magick -background none -font "$mono" -pointsize 18 -interline-spacing 3 -fill "$1" label:"$2" "$3"; }
+ponto=18; espaco=3; [[ -n $IMAGEM ]] && { ponto=$(( 1920 * 10 / 6 / COLUNAS )); espaco=0; }
+desenha() { magick -background none -font "$mono" -pointsize "$ponto" -interline-spacing "$espaco" -fill "$1" label:"$2" "$3"; }
 desenha '#3e3e44' "$(sed 's/[@&%#]/ /g' <<< "$arte")" "$tmp/claro.png"
 desenha '#85858d' "$(sed 's/[^@&%#]/ /g' <<< "$arte")" "$tmp/denso.png"
 magick "$tmp/claro.png" "$tmp/denso.png" -background none -layers merge "$tmp/arte.png"
 read -r w h < <(magick identify -format '%w %h' "$tmp/arte.png")
-magick -size "${w}x${h}" -define gradient:vector=0,0,$(( w * 35 / 100 )),0 gradient:black-white   \( -size "${w}x${h}" -define gradient:vector=0,$h,0,$(( h * 78 / 100 )) gradient:black-white \)   -compose multiply -composite "$tmp/mascara.png"
+esq=$(( w * 35 / 100 )); [[ -n $IMAGEM ]] && esq=1   # imagem cheia não some pela esquerda
+magick -size "${w}x${h}" -define gradient:vector=0,0,$esq,0 gradient:black-white   \( -size "${w}x${h}" -define gradient:vector=0,$h,0,$(( h * 78 / 100 )) gradient:black-white \)   -compose multiply -composite "$tmp/mascara.png"
 magick "$tmp/arte.png" \( +clone -alpha extract "$tmp/mascara.png" -compose multiply -composite \)   -alpha off -compose CopyOpacity -composite "$tmp/arte.png"
-magick -size 1920x1080 radial-gradient:'#1b1b1e'-'#09090a' "$tmp/arte.png"   -gravity east -geometry +110+0 -compose over -composite "$TEMA/fundo.png"
+magick -size 1920x1080 radial-gradient:'#1b1b1e'-'#09090a' "$tmp/arte.png"   -gravity "$([[ -n $IMAGEM ]] && echo south || echo east)" -geometry "$([[ -n $IMAGEM ]] && echo +0+0 || echo +110+0)" -compose over -composite "$TEMA/fundo.png"
 
 # Caixa arredondada da seleção, fatiada em 9 pedaços.
 magick -size 24x24 xc:none -fill '#ffffff12' -stroke '#7a7a80' -strokewidth 1.5 \
