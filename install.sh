@@ -102,6 +102,8 @@ programs=(
     gpick ueberzugpp redshift p7zip unrar unzip epub-thumbnailer-git python-pdftotext poppler xorg-xinput vim webkit2gtk-4.1 xclip yt-dlp
     zathura zathura-pdf-mupdf zip xorg-server xorg-xinit libx11 libxinerama libxft base base-devel qt5ct qt6ct libreoffice-fresh
     pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber xorg-xwininfo scrcpy bibata-cursor-theme-bin
+    # Painel Arthos (Node puro com node:sqlite, túnel, TV via adb/scrcpy, câmera via ffmpeg, scripts Python da Casa)
+    nodejs cloudflared python python-cryptography sqlite nftables ddcutil net-tools iputils usbutils
 )
 
 total=${#programs[@]}
@@ -158,6 +160,16 @@ sleep 1 && clear
 
 # Áudio: o PipeWire vem instalado mas desligado; --global vale para todo usuário e funciona até no chroot.
 sudo systemctl --global enable pipewire.socket pipewire-pulse.socket wireplumber.service &> /dev/null
+
+# Painel Arthos: tinytuya e tplinkrouterc6u não existem no pacman e o pip do sistema é bloqueado (PEP 668).
+echo "Preparing Arthos panel Python venv..."
+python -m venv --system-site-packages ~/.venvs/arthos &> /dev/null \
+  && ~/.venvs/arthos/bin/pip install -q tinytuya tplinkrouterc6u &> /dev/null \
+  || echo "WARNING: venv do painel falhou; rode: python -m venv ~/.venvs/arthos && ~/.venvs/arthos/bin/pip install tinytuya tplinkrouterc6u"
+# Monitor por DDC/CI (controle da fonte pela Alexa): ddcutil precisa do i2c-dev carregado e do grupo i2c.
+echo i2c-dev | sudo tee /etc/modules-load.d/i2c-dev.conf > /dev/null
+getent group i2c > /dev/null || sudo groupadd -r i2c
+sudo usermod -aG i2c "$USER"
 
 if [ -d "/sys/class/power_supply" ] && [ "$(ls -A /sys/class/power_supply)" ]; then
     notebook_programs=(acpi acpilight)
