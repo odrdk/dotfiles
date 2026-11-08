@@ -104,6 +104,8 @@ programs=(
     pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber xorg-xwininfo scrcpy bibata-cursor-theme-bin
     # Painel Arthos (Node puro com node:sqlite, túnel, TV via adb/scrcpy, câmera via ffmpeg, scripts Python da Casa)
     nodejs cloudflared python python-cryptography sqlite nftables ddcutil net-tools iputils usbutils
+    # Terceiro monitor no adaptador USB Silicon Motion 090c:0768 (AUR, puxa evdi-dkms-git; o udev sobe o serviço ao plugar)
+    smi-usbdisplay
 )
 
 total=${#programs[@]}

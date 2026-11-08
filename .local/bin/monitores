@@ -1,13 +1,50 @@
 #!/bin/sh
-# Dois monitores de 144 Hz quando existem; em VM, 1920x1080; senão, a resolução nativa da saída conectada.
-if xrandr | grep -q "^DP-0 connected"; then
-  xrandr --output DP-0 --mode 1920x1080 --rate 144 --primary \
-         --output DP-2 --mode 1920x1080 --rate 144 --left-of DP-0
-else
-  saida=$(xrandr | awk '/ connected/{print $1; exit}')
-  if systemd-detect-virt -q; then
-    xrandr --output "$saida" --mode 1920x1080
-  else
-    xrandr --output "$saida" --auto
-  fi
+# Telas lado a lado: notebook (eDP/LVDS) à esquerda, o maior monitor externo no centro como principal,
+# os demais à direita (ex.: Philips no adaptador USB SMI, que aparece como DVI-I-x-x). Centraliza na vertical.
+# Em VM: 1920x1080 na primeira saída. Rode de novo depois de plugar ou tirar um monitor.
+
+if systemd-detect-virt -q; then
+  xrandr --output "$(xrandr | awk '/ connected/{print $1; exit}')" --mode 1920x1080
+  exit
 fi
+
+# Adaptador USB (evdi) só ganha saídas depois de ligado à GPU principal.
+xrandr --listproviders | awk -F'[: ]+' '/^Provider [1-9]/{print $2}' | while read -r p; do
+  xrandr --setprovideroutputsource "$p" 0 2>/dev/null
+done
+sleep 1
+
+# "saida largura altura" de cada tela conectada, pelo modo preferido (o marcado com +) ou o primeiro listado.
+telas=$(xrandr --query | awk '
+  function fecha() { if (nome != "") print nome, (pref != "" ? pref : prim); nome = "" }
+  /^[^ ]+ connected/ { fecha(); nome = $1; pref = prim = ""; next }
+  /^[^ ]/            { fecha(); next }
+  nome != "" && /^ +[0-9]+x[0-9]+/ {
+    split($1, r, "x"); m = r[1] " " r[2]
+    if (prim == "") prim = m
+    if (pref == "" && $0 ~ /\+/) pref = m
+  }
+  END { fecha() }')
+
+interna=$(echo "$telas" | awk 'NF == 3 && $1 ~ /^(eDP|LVDS)/' | head -1)
+externas=$(echo "$telas" | awk 'NF == 3 && $1 !~ /^(eDP|LVDS)/')
+principal=$(echo "$externas" | awk 'NF == 3 {print $2 * $3, $0}' | sort -rn | head -1 | cut -d' ' -f2-)
+resto=$(echo "$externas" | grep -vxF "$principal")
+if [ -z "$principal" ]; then principal=$interna; interna=; fi
+
+ordem=$(printf '%s\n%s\n%s\n' "$interna" "$principal" "$resto" | awk 'NF == 3')
+hmax=$(echo "$ordem" | awk '$3 > h {h = $3} END {print h + 0}')
+
+args="" x=0
+for saida in $(xrandr | awk '/ disconnected/{print $1}'); do args="$args --output $saida --off"; done
+while read -r nome w h; do
+  [ -n "$nome" ] || continue
+  args="$args --output $nome --auto --pos ${x}x$(( (hmax - h) / 2 ))"
+  [ "$nome $w $h" = "$principal" ] && args="$args --primary"
+  x=$((x + w))
+done <<EOF
+$ordem
+EOF
+
+# shellcheck disable=SC2086
+[ -n "$args" ] && xrandr $args
