@@ -3,13 +3,17 @@
 #   p1 EFI em /efi (aberta)  p2 /boot LUKS2-PBKDF2, aberto pelo GRUB  p3 / LUKS2-Argon2id, aberto pelo initramfs
 # No boot são duas senhas: a do /boot no GRUB (layout US!) e a do / no initramfs (ABNT2).
 # No fim instala a build dwm (DOTFILES_REPO, com o install.sh dela); DOTFILES_REPO= vazio pula essa parte.
-# Uso, no live ISO: bash instalar-arch-luks.sh /dev/sdX   (APAGA o disco inteiro)
+# Uso, no live ISO: bash instalar-arch-luks.sh            (acha o disco pelo modelo MODELO_ALVO)
+#                   bash instalar-arch-luks.sh /dev/sdX   (APAGA o disco inteiro)
+# Disco com modelo MODELO_PROTEGIDO ou com partição NTFS é recusado: é onde mora o Windows.
 set -euo pipefail
 
 NOME_MAQUINA=${NOME_MAQUINA:-arthos}
 USUARIO=${USUARIO:-arthos}
 KERNEL_EXTRA=${KERNEL_EXTRA:-} # teste em VM: KERNEL_EXTRA=console=ttyS0
 DOTFILES_REPO=${DOTFILES_REPO-https://github.com/odrdk/dotfiles}
+MODELO_ALVO=${MODELO_ALVO:-MSI}             # SSD do Arch (MSI S270 240GB)
+MODELO_PROTEGIDO=${MODELO_PROTEGIDO:-KINGSTON} # SSD do Windows (KINGSTON SA400S37240G)
 FUSO=America/Sao_Paulo
 TECLADO=br-abnt2
 CHAVE_BOOT=/etc/cryptsetup-keys.d/cryptboot.key
@@ -18,10 +22,19 @@ erro() { echo "ERRO: $*" >&2; exit 1; }
 part() { [[ $1 =~ [0-9]$ ]] && echo "${1}p$2" || echo "$1$2"; } # nvme0n1p1 x sda1
 
 fase_live() {
-  local disco=${1:-}
+  local disco=${1:-} modelo
   [[ $EUID -eq 0 ]] || erro "rode como root"
   [[ -d /sys/firmware/efi ]] || erro "não iniciou em UEFI"
+  # Os dois SSDs são SATA e sda/sdb podem trocar entre boots: sem argumento, o disco sai do modelo.
+  if [[ -z $disco ]]; then
+    mapfile -t achados < <(lsblk -dnpo NAME,TYPE,MODEL | awk -v m="${MODELO_ALVO^^}" '$2 == "disk" && toupper($0) ~ m {print $1}')
+    (( ${#achados[@]} == 1 )) || { lsblk -dpo NAME,SIZE,MODEL; erro "achei ${#achados[@]} discos com modelo $MODELO_ALVO; informe o disco: bash $0 /dev/sdX"; }
+    disco=${achados[0]}
+  fi
   [[ -b $disco && $(lsblk -dno TYPE "$disco") == disk ]] || erro "informe o disco inteiro, ex.: /dev/sda"
+  modelo=$(lsblk -dno MODEL "$disco")
+  [[ ${modelo^^} != *"${MODELO_PROTEGIDO^^}"* ]] || erro "$disco é o $modelo, o disco do Windows: recusado"
+  ! lsblk -no FSTYPE "$disco" | grep -qx ntfs || erro "$disco tem partição NTFS (Windows?): recusado"
   lsblk -no MOUNTPOINTS "$disco" | grep -q . && erro "$disco tem partição montada"
   ping -c1 -W3 archlinux.org >/dev/null || erro "sem internet (Wi-Fi: iwctl station wlan0 connect \"REDE\")"
 
@@ -97,7 +110,7 @@ fase_chroot() {
   echo "LANG=pt_BR.UTF-8" > /etc/locale.conf
   echo "KEYMAP=$TECLADO" > /etc/vconsole.conf
   ln -sf "/usr/share/zoneinfo/$FUSO" /etc/localtime
-  hwclock --systohc --utc # sem Windows na máquina, BIOS em UTC
+  hwclock --systohc --utc # BIOS em UTC; o Windows precisa de RealTimeIsUniversal=1 para concordar
 
   # O vídeo cria senha de root; aqui o root fica travado e a administração é pelo sudo do wheel.
   useradd -m -G wheel,storage,power -s /bin/bash "$USUARIO"
