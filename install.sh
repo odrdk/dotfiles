@@ -92,7 +92,7 @@ sudo pacman -Sy &> /dev/null
 setup_openrgb_ram_amd
 
 programs=(
-    cava devour exa tty-clock-git picom-simpleanims-next-git cmatrix-git pipes.sh npm xdotool xautolock betterlockscreen 
+    cava devour exa tty-clock-git picom cmatrix-git pipes.sh npm xdotool xautolock betterlockscreen 
     yad libnotify wal-telegram-git python-pywalfox xsettingsd themix-gui-git pacman-contrib ripgrep fd luarocks v4l2loopback-dkms
     themix-theme-oomox-git archdroid-icon-theme tesseract-data-eng tesseract-data-por slop arandr polkit-gnome clipmenu zsh openrgb
     cmus mpd mpc ncmpcpp playerctl dbus simple-mtpfs dunst emacs feh ffmpeg ffmpegthumbnailer firefox flameshot pcmanfm gvfs
@@ -155,6 +155,9 @@ for program in "${programs[@]}"; do
 done
 
 sleep 1 && clear
+
+# Áudio: o PipeWire vem instalado mas desligado; --global vale para todo usuário e funciona até no chroot.
+sudo systemctl --global enable pipewire.socket pipewire-pulse.socket wireplumber.service &> /dev/null
 
 if [ -d "/sys/class/power_supply" ] && [ "$(ls -A /sys/class/power_supply)" ]; then
     notebook_programs=(acpi acpilight)
