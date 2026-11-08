@@ -233,7 +233,7 @@ static void enternotify(XEvent *e);
 static void expose(XEvent *e);
 static void focus(Client *c);
 static void focusin(XEvent *e);
-//static void focusmon(const Arg *arg);
+static void focusmon(const Arg *arg);
 static void focusstackvis(const Arg *arg);
 static void focusstack(int inc, int vis);
 static Atom getatomprop(Client *c, Atom prop);
@@ -1557,7 +1557,7 @@ focusin(XEvent *e)
 		setfocus(selmon->sel);
 }
 
-/*void
+void
 focusmon(const Arg *arg)
 {
 	Monitor *m;
@@ -1569,7 +1569,7 @@ focusmon(const Arg *arg)
 	unfocus(selmon->sel, 0);
 	selmon = m;
 	focus(NULL);
-}*/
+}
 
 void
 focusstackvis(const Arg *arg) {
