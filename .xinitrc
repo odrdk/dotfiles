@@ -64,8 +64,8 @@ udiskie &
 # XSettings daemon (GTK theme, icons, etc.)
 xsettingsd &
 
-# Keyboard layout (Brazilian Portuguese)
-setxkbmap br &
+# Keyboard layout: ABNT2 adaptado ao K86 (~/.local/bin/teclado)
+teclado &
 
 # Screen locker daemon
 alwayslock &

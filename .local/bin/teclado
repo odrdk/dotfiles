@@ -1,0 +1,5 @@
+#!/bin/sh
+# Teclado: ABNT2 + AltGr+Q /, AltGr+W ?, AltGr+Z \ e AltGr+Shift+Z | (o K86 é americano).
+setxkbmap br abnt2
+setxkbmap br abnt2 -print | sed 's/\(xkb_symbols[^"]*"[^"]*\)"/\1+k86"/' \
+  | xkbcomp -w 0 -I"$HOME/.config/xkb" - "$DISPLAY" 2>/dev/null

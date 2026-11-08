@@ -1,0 +1,7 @@
+// ABNT2 em teclado americano (Attack Shark K86): as teclas \| e /? do ABNT2 não existem nele.
+default partial alphanumeric_keys
+xkb_symbols "basic" {
+    key <AD01> { [ q, Q, slash,     question ] };
+    key <AD02> { [ w, W, question,  degree   ] };
+    key <AB01> { [ z, Z, backslash, bar      ] };
+};
