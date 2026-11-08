@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Tema do GRUB em ASCII. Padrão: arte do dashboard do Neovim à direita, menu à esquerda.
-# Uso: sudo bash tema-boot.sh   |   sudo LOGO=arch bash tema-boot.sh   |   sudo IMAGEM=foto.png INVERTE=1 LAYOUT=centro bash tema-boot.sh
+# Uso: sudo bash tema-boot.sh   |   sudo LOGO=arch bash tema-boot.sh   |   sudo FUNDO=imagem.png bash tema-boot.sh
 set -euo pipefail
 [[ $EUID -eq 0 ]] || { echo "Rode com sudo: sudo bash tema-boot.sh"; exit 1; }
 
@@ -78,8 +78,12 @@ ARTE=${ARTE:-}       # ARTE=/caminho/arte.txt usa um ASCII pronto (um tom só, t
 LOGO=${LOGO:-}       # LOGO=arch: logo do Arch tirado do neofetch instalado, centralizado
 INVERTE=${INVERTE:-0} # INVERTE=1: parte clara da imagem vira caractere denso (desenho claro em fundo escuro)
 LAYOUT=${LAYOUT:-}   # LAYOUT=centro: sem saudação, menu centralizado embaixo, arte sem sombra
+FUNDO=${FUNDO:-}     # FUNDO=/caminho/imagem.png usa a imagem pronta como fundo, em preto e branco, menu centralizado
 modo=cohle
-if [[ $LOGO == arch ]]; then
+if [[ -n $FUNDO ]]; then
+  [[ -f $FUNDO ]] || { echo "Imagem não encontrada: $FUNDO"; exit 1; }
+  modo=foto; LAYOUT=centro
+elif [[ $LOGO == arch ]]; then
   command -v neofetch >/dev/null || { echo "Precisa do neofetch: yay -S neofetch"; exit 1; }
   # -L só o logo; sed tira cores e comandos de cursor que o neofetch manda junto.
   arte=$(neofetch --config none -L --ascii_distro arch 2>/dev/null | sed 's/\x1b\[[0-9;?]*[a-zA-Z]//g; s/[[:space:]]*$//' | sed '/^$/d')
@@ -124,6 +128,9 @@ fi
 
 # Fundo 1920x1080 (o GRUB estica para a tela).
 tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
+if [[ $modo == foto ]]; then   # preenche 1920x1080 sem distorcer; -level clareia o cinza que sobra da cor
+  magick "$FUNDO" -resize 1920x1080^ -gravity center -extent 1920x1080 -colorspace gray -level 0%,60% "$TEMA/fundo.png"
+else
 ponto=18; espaco=3
 [[ $modo == cheio ]] && { ponto=$(( 1920 * 10 / 6 / COLUNAS )); espaco=0; }
 [[ $modo == logo ]] && { ponto=22; espaco=2; }
@@ -161,6 +168,7 @@ if [[ $modo == cheio && $LAYOUT != centro ]]; then   # sombra à esquerda para o
 else
   cp "$tmp/fundo.png" "$TEMA/fundo.png"
 fi
+fi
 
 # Caixa arredondada da seleção, fatiada em 9 pedaços.
 magick -size 24x24 xc:none -fill '#ffffff12' -stroke '#7a7a80' -strokewidth 1.5 \
@@ -172,7 +180,7 @@ rm "$TEMA/caixa.png"
 
 if [[ $LAYOUT == centro ]]; then
   saudacao=""
-  menu_pos="left = 50%-260 top = $([[ $modo == logo ]] && echo 59% || echo 70%) width = 520 height = 26%"
+  menu_pos="left = 50%-260 top = $([[ $modo == logo ]] && echo 59% || echo 70%) width = 520 height = 24%"
   rod_pos='left = 0 width = 100% align = "center"'
 else
   saudacao="+ label { left = 7% top = 7% width = 40% height = 40 font = \"$ft\" color = \"#e6e6e8\" text = \"Bem-vindo de volta, $NOME . . .\" }"
