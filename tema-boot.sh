@@ -78,16 +78,19 @@ ARTE=${ARTE:-}       # ARTE=/caminho/arte.txt usa um ASCII pronto (um tom só, t
 LOGO=${LOGO:-}       # LOGO=arch: logo do Arch tirado do neofetch instalado, centralizado
 INVERTE=${INVERTE:-0} # INVERTE=1: parte clara da imagem vira caractere denso (desenho claro em fundo escuro)
 LAYOUT=${LAYOUT:-}   # LAYOUT=centro: sem saudação, menu centralizado embaixo, arte sem sombra
+logo_arch() { # -L só o logo; sed tira cores e comandos de cursor que o neofetch manda junto.
+  command -v neofetch >/dev/null || { echo "Precisa do neofetch: yay -S neofetch" >&2; exit 1; }
+  local l; l=$(neofetch --config none -L --ascii_distro arch 2>/dev/null | sed 's/\x1b\[[0-9;?]*[a-zA-Z]//g; s/[[:space:]]*$//' | sed '/^$/d')
+  [[ -n $l ]] || { echo "O neofetch não devolveu o logo." >&2; exit 1; }
+  printf '%s\n' "$l"
+}
 FUNDO=${FUNDO:-}     # FUNDO=/caminho/imagem.png usa a imagem pronta como fundo, em preto e branco, menu centralizado
 modo=cohle
 if [[ -n $FUNDO ]]; then
   [[ -f $FUNDO ]] || { echo "Imagem não encontrada: $FUNDO"; exit 1; }
   modo=foto; LAYOUT=centro
 elif [[ $LOGO == arch ]]; then
-  command -v neofetch >/dev/null || { echo "Precisa do neofetch: yay -S neofetch"; exit 1; }
-  # -L só o logo; sed tira cores e comandos de cursor que o neofetch manda junto.
-  arte=$(neofetch --config none -L --ascii_distro arch 2>/dev/null | sed 's/\x1b\[[0-9;?]*[a-zA-Z]//g; s/[[:space:]]*$//' | sed '/^$/d')
-  [[ -n $arte ]] || { echo "O neofetch não devolveu o logo."; exit 1; }
+  arte=$(logo_arch)
   modo=logo; LAYOUT=centro
 elif [[ -n $ARTE ]]; then
   [[ -f $ARTE ]] || { echo "Arquivo não encontrado: $ARTE"; exit 1; }
@@ -130,6 +133,16 @@ fi
 tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 if [[ $modo == foto ]]; then   # preenche 1920x1080 sem distorcer; -level clareia o cinza que sobra da cor
   magick "$FUNDO" -resize 1920x1080^ -gravity center -extent 1920x1080 -colorspace gray -level 0%,60% "$TEMA/fundo.png"
+  if (( ${DESLOCA:-0} != 0 )); then   # DESLOCA=-60 puxa a parte esquerda (até CORTE% da largura) para o lado
+    corte=$(( 1920 * ${CORTE:-52} / 100 ))
+    cor=$(magick "$TEMA/fundo.png" -format '%[pixel:p{5,5}]' info:)
+    magick -size 1920x1080 xc:"$cor"       \( "$TEMA/fundo.png" -crop "${corte}x1080+0+0" +repage \) -geometry "$(printf '%+d+0' "$DESLOCA")" -composite       \( "$TEMA/fundo.png" -crop "$(( 1920 - corte ))x1080+${corte}+0" +repage \) -geometry "+${corte}+0" -composite "$TEMA/fundo.png"
+  fi
+  if [[ $LOGO == arch ]]; then   # logo pequeno no meio da tela (no vão entre as mãos da imagem de referência)
+    l=$(logo_arch); b='\'; l=${l//"$b"/"$b$b"}; l=${l//%/%%}
+    magick -background none -font "$mono" -pointsize 11 -interline-spacing 0 -fill '#f2f2f2' label:" $l" "$tmp/logo.png"
+    magick "$TEMA/fundo.png" "$tmp/logo.png" -gravity north -geometry "${LOGO_POS:-+2+352}" -compose over -composite "$TEMA/fundo.png"
+  fi
 else
 ponto=18; espaco=3
 [[ $modo == cheio ]] && { ponto=$(( 1920 * 10 / 6 / COLUNAS )); espaco=0; }
