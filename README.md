@@ -1,98 +1,116 @@
 <div align="center">
-    <img src="https://github.com/user-attachments/assets/45b979eb-9fa6-49be-93a4-b7b90b2dceba" width="300">
-</div><br>
 
-<div align="center">
-    <img src="https://github.com/user-attachments/assets/88f292c5-1c6c-483c-a66a-19fc9d6fd365" width="300">
-</div><br>
+![](/img/raven.png)
+## /home/emnesty/dotfiles
 
-<div align=center>
-  
-![](https://img.shields.io/github/stars/odrdk/dotfiles?color=FFFFFF&logo=apachespark&logoColor=D9E0EE&style=for-the-badge&labelColor=191c27)
-![](https://img.shields.io/github/last-commit/odrdk/dotfiles?&logo=github&style=for-the-badge&color=FFFFFF&logoColor=D9E0EE&labelColor=191c27)
-![](https://img.shields.io/github/repo-size/odrdk/dotfiles?color=FFFFFF&logo=hackthebox&logoColor=D9E0EE&style=for-the-badge&labelColor=191c27)
+
+[![](https://img.shields.io/github/stars/odrdk/dotfiles?color=grey&logo=apachespark&logoColor=white&style=for-the-badge&labelColor=black)](https://github.com/odrdk/dotfiles/stargazers)
+[![](https://img.shields.io/github/last-commit/odrdk/dotfiles?&logo=github&style=for-the-badge&color=grey&logoColor=white&labelColor=black)](https://github.com/odrdk/dotfiles/commits)
+[![](https://img.shields.io/github/repo-size/odrdk/dotfiles?color=grey&logo=hackthebox&logoColor=white&style=for-the-badge&labelColor=black)](https://github.com/odrdk/dotfiles)
+
+![](/img/1.png)
+![](/img/2.png)
+![](/img/3.png)
+![](/img/pywal.gif)
+
 
 </div>
 
-<img align="right" src="https://github.com/user-attachments/assets/24717e46-fad5-47f3-aa9e-2e98ace5ec96" alt="Rice Preview" width="363px"/>
+<div align="center">
 
-```Go
-❄️                  Setup / DWM                   ❄️
----------------------------------------------------
-╭─ Distro          -> Arch Linux
-├─ Editor          -> NeoVim / Emacs
-├─ Browser         -> Firefox / qutebrowser
-├─ Shell           -> zsh
-╰─ Process Viewer  -> btop
- 
-╭─ Music Player    -> cmus
-├─ Compositor      -> picom
-├─ Notifications   -> dunst
-├─ Media Player    -> mpv
-╰─ File Manager    -> ranger
- 
-╭─ WM              -> dwm
-├─ Terminal        -> st
-├─ App Laucher     -> dmenu
-├─ Theme           -> pywal
-╰─ Font            -> JetBrainsMono NF
 ```
-<p align="center">
-    <img src="https://github.com/user-attachments/assets/88a20890-fdb4-45d6-b025-f119f9b0e53d" width="500px" alt="DWM Rice"/>
-</p>
-<br>
-
-  **Warning**
- 
-  This is my private Arch Linux configuration. It is recommended to use it only for inspiration, as there is no guarantee that it will work for you.
-  
-  I am no Arch expert. I'm just a Arch user.
- 
-<br>
-
-<div align=center>
-  
-```ocaml
-❄️ Installation 魅
+Setup / DWM
 ```
+
+</div>
+
+```
+Distro          -> Artix Linux
+Editor          -> NeoVim
+Browser         -> Firefox 
+Shell           -> zsh
+Process Viewer  -> btop
+
+Music Player    -> cmus
+Compositor      -> picom
+Notifications   -> dunst
+Media Player    -> mpv
+File Manager    -> ranger
+
+WM              -> dwm
+Terminal        -> st
+App Laucher     -> dmenu
+Theme           -> pywal
+Font            -> JetBrainsMono NF
+```
+
+<div align="center">
+
+```
+Installation
+```
+
 </div>
 
 <details>
-<summary><b>Manual</b></summary>
+  <summary><b>Manual</b></summary>
+
 <br>
 
-  Assuming your **AUR Helper** is [yay](https://github.com/Jguer/yay).
-
-```sh
-yay -S cava devour exa tty-clock-git picom-simpleanims-next-git cmatrix-git pipes.sh npm checkupdates-with-aur xdotool xautolock betterlockscreen yad libnotify wal-telegram-git pywalfox xsettingsd themix-gui-git themix-theme-oomox-git archdroid-icon-theme tesseract-data-eng tesseract-data-por slop arandr polkit-gnome clipmenu zsh cmus mpd mpc ncmpcpp playerctl dbus simple-mtpfs dunst emacs feh ffmpeg ffmpegthumbnailer firefox flameshot pcmanfm fzf git gnu-free-fonts go gd btop imagemagick mpv neofetch neovim noto-fonts noto-fonts-cjk noto-fonts-emoji numlockx obs-studio openssh perl pulseaudio pulsemixer udiskie python-pip python-pywal qalculate-gtk android-tools xdg-user-dirs qutebrowser ranger syncthing sxiv telegram-desktop tree ttf-jetbrains-mono-nerd ttf-font-awesome gpick ueberzugpp redshift p7zip unzip epub-thumbnailer-git python-pdftotext poppler xorg-xinput vim webkit2gtk xclip yt-dlp zathura zathura-pdf-mupdf zip xorg-server xorg-xinit libx11 libxinerama libxft base base-devel
+> Assuming your <b>AUR Helper</b> is [yay](https://github.com/Jguer/yay). 
 ```
-```sh
+yay -S cava slop devour exa tty-clock-git picom-jonaburg-git cmatrix-git pipes.sh checkupdates+aur libnotify wal-telegram-git poppler npm p7zip epub-thumbailer-git python-pdftotext python-pywalfox tesseract-data-eng tesseract-data-por arandr clipmenu zsh playerctl dbus simple-mtpfs dunst feh ffmpeg ffmpegthumbnailer firefox flameshot fzf git gnu-free-fonts go htop imagemagick mpv neofetch neovim noto-fonts noto-fonts-cjk noto-fonts-emoji numlockx obs-studio openssh perl pulseaudio pulsemixer python-pip python-pywal ranger syncthing sxiv telegram-desktop tmux tree ttf-jetbrains-mono-nerd ttf-font-awesome gpick ueberzug redshift unzip vim webkit2gtk xclip yt-dlp zathura zathura-djvu zathura-pdf-mupdf zip xorg-server xorg-xinit libx11 libxinerama libxft base base-devel
+```
+
+```
+git clone https://github.com/odrdk/dotfiles.git
+```
+> Create [symbolic links](https://www.freecodecamp.org/news/linux-ln-how-to-create-a-symbolic-link-in-linux-example-bash-command/) to the files/directories you need.
+</details>
+
+<details>
+  <summary><b>Automatic</b></summary>
+
+<br>
+
+> Install [git](https://github.com/git/git)
+
+```
+sudo pacman -Syu git
+```
+
+> Clone this repo 
+
+```
 git clone https://github.com/odrdk/dotfiles.git
 ```
 
-  Create [symbolic links](https://www.freecodecamp.org/news/linux-ln-how-to-create-a-symbolic-link-in-linux-example-bash-command/) to the files/directories you need.
+> Go to folder
 
-</details>
+```
+cd dotfiles/
+```
 
-<details>
-<summary><b>Automatic</b></summary>
-<br>
+> Give permission to the script
 
-  Install [curl](https://curl.se/)
+```
+chmod +x install.sh
+```
 
-```sh
-bash <(curl -sSL https://kutt.it/hntdots)
+> Execute the script
+
+```
+./install.sh
 ```
 
 </details>
-<br>
 
-<div align=center>
-  
-```ocaml
-❄️ Suckless Build お
+<div align="center">
+
 ```
-<br>
+Suckless Build
+```
+
 </div>
 
 <details>
@@ -471,78 +489,63 @@ bash <(curl -sSL https://kutt.it/hntdots)
 </details>
 
 <details>
-<summary><b>Keybinds 麗</b></summary><br>
+  <summary><b>Keybinds</b></summary>
 
-| Keybind                            | Description                                    |
-|------------------------------------|------------------------------------------------|
-| `Super` + `Enter`                  | Create a new terminal.                         |
-| `Super` + `P`                      | Open DMENU.                                    |
-| `Super` + `Shift` + `Q`            | Close a window.                                |
-| `Super` + `Shift` + `R`            | Restart DWM.                                   |
-| `Super` + `←` `→`                  | Move to another window.                        |
-| `Super` + `Shift` + `←` `→`        | Move master window.                            |
-| `Super` + `Shift` + `Space`        | Toggle floating window.                        |
-| `Super` + `,`                      | Show/Add to scratchpad.                        |
-| `Super` + `Shift` + `,`            | Hide scratchpad.                               |
-| `Super` + `.`                      | Remove scratchpad.                             |
-| `Super` + `M`                      | Monocle layout.                                |
-| `Super` + `T`                      | Tiled layout.                                  |
-| `Super` + `F`                      | Spiral layout.                                 |
-| `Super` + `U`                      | Centered master layout.                        |
-| `Super` + `O`                      | Grid layout.                                   |
-| `Super` + `B`                      | Toggle the top bar.                            |
-| `Super` + `Shift` + `1/5`          | Move a window to another tag.                  |
-| `Super` + `1/5`                    | Switch to another tag.                         |
-| `Super` + `I`                      | Increment master.                              |
-| `Super` + `D`                      | Decrement master.                              |
-| `Super` + `H`                      | Move mfact to the left.                        |
-| `Super` + `L`                      | Move mfact to the right.                       |
-| `Super` + `K`                      | Move cfact down.                               |
-| `Super` + `J`                      | Move cfact up.                                 |
-| `Super` + `Space`                  | Toggle last layout.                            |
-| `Super` + `Shift` + `Space`        | Toggle floating window.                        |
-| `Super` + `=`                      | Increment gaps.                                |
-| `Super` + `-`                      | Decrement gaps.                                |
-| `Super` + `Alt` + `0`              | Restore gaps.                                  |
-| `Super` + `Shift` + `=`            | Increment vertical gaps.                       |
-| `Super` + `Shift` + `-`            | Decrement vertical gaps.                       |
-| `Super` + `Control` + `=`          | Increment horizontal gaps.                     |
-| `Super` + `Control` + `-`          | Decrement horizontal gaps.                     |
-| `Super` + `Alt` + `=`              | Increment inside gaps.                         |
-| `Super` + `Alt` + `-`              | Decrement inside gaps.                         |
-| `Alt` + `←` `↑` `→` `↓`            | Move windows.                                  |
-| `Alt` + `Shift` + `←` `↑` `→` `↓`  | Resize windows.                                |
-| `Alt` + `Control` + `←` `↑` `→` `↓`| Move windows to the corners.                   |
-| `Super` + `F1`                     | Open file manager.                             |
-| `Super` + `F2`                     | Open browser.                                  |
-| `Super` + `F3`                     | Open messaging application.                    |
-| `Super` + `F4`                     | Open music player.                             |
-| `Super` + `F6`                     | Open audio manager.                            |
-| `Super` + `F7`                     | Open screen recorder.                          |
-| `Super` + `F11`                    | Lockscreen.                                    |
-| `Calculator`                       | Open calculator.                               |
-| `Super` + `Shift` + `N`            | Toggle nightmode.                              |
-| `Super` + `Shift` + `E`            | Theme selector.                                |
-| `Super` + `Control` + `E`          | Emoji selector.                                |
-| `Super` + `Shift` + `S`            | Manage dotfiles.                               |
-| `Super` + `Shift` + `Y`            | Manage clipboard.                              |
-| `Super` + `Shift` + `V`            | Select VPN location.                           |
-| `Super` + `Shift` + `K`            | Choose audio output.                           |
-| `Super` + `PrtSc`                  | Fullscreen screenshot.                         |
-| `PrtSc`                            | Screenshot of the selected area.               |
-| `AudioPlay`                        | Toggle Play/Pause media.                       |
-| `AudioNext`                        | Next track.                                    |
-| `AudioPrev`                        | Previous track.                                |
-| `AudioLowerVolume`                 | Decrease volume.                               |
-| `AudioRaiseVolume`                 | Increase volume.                               |
-| `AudioMute`                        | Toggle mute volume.                            |
-| `Alt` + `Z`                        | Toggle mute mic.                               |
-| `Alt` + `F2`                       | Decrease volume mic.                           |
-| `Alt` + `F3`                       | Increase volume mic.                           |
-| `MonBrightnessUp`                  | Increase brightness.                           |
-| `MonBrightnessDown`                | Decrease brightness.                           |
-| `Super` + `Shift` + `P`            | Power Menu.                                    |
+<br>
+
+- `Super` + `Enter` = <i>Create a new terminal.</i>
+- `Super` + `Shift` + `Q` = <i>Close a window.</i>
+- `Super` + `Shift` + `R` = <i>Restart DWM.</i>
+- `Super` + `LeftArrow`, `RightArrow` = <i>Move to another window.</i>
+- `Super` + `M` = <i>Monocle layout.</i>
+- `Super` + `T` = <i>Tiled layout.</i>
+- `Super` + `F` = <i>Spiral layout.</i>
+- `Super` + `U` = <i>Centered master layout.</i>
+- `Super` + `O` = <i>Grid layout.</i>
+- `Super` + `B` = <i>Toggle the top bar.</i>
+- `Super` + `Shift` + 1/5 = <i>Move a window to another tag.</i>
+- `Super` + `1/5` = <i>Switch to another tag.</i>
+- `Super` + `I` = <i>Increment master.</i>
+- `Super` + `D` = <i>Decrement master.</i>
+- `Super` + `H` = <i>Move mfact to the left.</i>
+- `Super` + `L` = <i>Move mfact to the right.</i>
+- `Super` + `K` = <i>Move cfact down.</i>
+- `Super` + `J` = <i>Move cfact up.</i>
+- `Super` + `Space` = <i>Toggle last layout.</i>
+- `Super` + `Shift` + Space = <i>Toggle floating window.</i>
+- `Super` + ``=`` = <i>Increment gaps.</i>
+- `Super` + ``-`` = <i>Decrement gaps.</i>
+- `Super` + `Alt` + 0 = <i>Restore gaps.</i>
+- `Super` + `Shift` + = = <i>Increment vertical gaps.</i>
+- `Super` + `Shift` + - = <i>Decrement vertical gaps.</i>
+- `Super` + `Control` + = = <i>Increment horizontal gaps.</i>
+- `Super` + `Control` + - = <i>Decrement horizontal gaps.</i>
+- `Super` + `Alt` + ``=`` = <i>Increment inside gaps.</i>
+- `Super` + `Alt` + ``-`` = <i>Decrement inside gaps.</i>
+- `Super` + `F1` = <i>Open file manager.</i>
+- `Super` + `F2` = <i>Open browser.</i>
+- `Super` + `F3` = <i>Open messaging application.</i>
+- `Super` + `F4` = <i>Open music player.</i>
+- `Super` + `F5` = <i>Open code editor.</i>
+- `Super` + `F6` = <i>Open audio manager.</i>
+- `Super` + `F7` = <i>Open screen recorder.</i>
+- `Super` + `F11` = <i>Lockscreen.</i>
+- `Super` + `F12` = <i>Open calculator.</i>
+- `Super` + `Shift` + N = <i>Toggle nightmode.</i>
+- `Super` + `Shift` + E = <i>Theme selector.</i>
+- `Super` + `Control` + E = <i>Emoji selector.</i>
+- `Super` + `Shift` + S = <i>Manage dotfiles.</i>
+- `Super` + `Shift` + Y = <i>Manage clipboard.</i>
+- `Super` + `PrtSc` = <i>Fullscreen screenshot.</i>
+- `PrtSc` = <i>Screenshot of the selected area.</i>
+- `AudioLowerVolume` = <i>Volume control down.</i>
+- `AudioRaiseVolume` = <i>Volume control up.</i>
+- `AudioMute` = <i>Toggle mute.</i>
+- `Alt` + `Z` = <i>Toggle mute mic.</i>
+- `MonBrightnessUp` = <i>Increment brightness.</i>
+- `MonBrightnessDown` = <i>Decrement brightness.</i>
+- `Super` + `Shift` + `P` = <i>Power Menu.</i>
+- `Super` + `P` = <i>Open DMENU.</i>
 
 </details>
 
-<img src="https://user-images.githubusercontent.com/123886904/218294072-d474a330-7464-430a-b369-91f79373dbca.svg" width="100%" title="Footer">
