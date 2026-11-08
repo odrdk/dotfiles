@@ -130,7 +130,12 @@ read -r w h < <(magick identify -format '%w %h' "$tmp/arte.png")
 esq=$(( w * 35 / 100 )); [[ -n $IMAGEM ]] && esq=1   # imagem cheia não some pela esquerda
 magick -size "${w}x${h}" -define gradient:vector=0,0,$esq,0 gradient:black-white   \( -size "${w}x${h}" -define gradient:vector=0,$h,0,$(( h * 78 / 100 )) gradient:black-white \)   -compose multiply -composite "$tmp/mascara.png"
 magick "$tmp/arte.png" \( +clone -alpha extract "$tmp/mascara.png" -compose multiply -composite \)   -alpha off -compose CopyOpacity -composite "$tmp/arte.png"
-magick -size 1920x1080 radial-gradient:'#1b1b1e'-'#09090a' "$tmp/arte.png"   -gravity "$([[ -n $IMAGEM ]] && echo south || echo east)" -geometry "$([[ -n $IMAGEM ]] && echo +0+0 || echo +110+0)" -compose over -composite "$TEMA/fundo.png"
+magick -size 1920x1080 radial-gradient:'#1b1b1e'-'#09090a' "$tmp/arte.png"   -gravity "$([[ -n $IMAGEM ]] && echo south || echo east)" -geometry "$([[ -n $IMAGEM ]] && echo +0+130 || echo +110+0)" -compose over -composite "$tmp/fundo.png"
+if [[ -n $IMAGEM ]]; then   # tela cheia: sombra à esquerda para o menu e o rodapé ficarem legíveis sobre a arte
+  magick "$tmp/fundo.png" \( -size 1920x1080 -define gradient:vector=0,0,900,0 gradient:'#09090ae6'-'#09090a00' \)     -compose over -composite "$TEMA/fundo.png"
+else
+  cp "$tmp/fundo.png" "$TEMA/fundo.png"
+fi
 
 # Caixa arredondada da seleção, fatiada em 9 pedaços.
 magick -size 24x24 xc:none -fill '#ffffff12' -stroke '#7a7a80' -strokewidth 1.5 \
