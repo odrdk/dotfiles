@@ -75,7 +75,13 @@ ARTE
 
 # IMAGEM=/caminho/foto.png troca a arte do Neovim por ASCII gerado da imagem (tinta escura vira caractere denso).
 IMAGEM=${IMAGEM:-}
-if [[ -n $IMAGEM ]]; then
+ARTE=${ARTE:-}   # ARTE=/caminho/arte.txt usa um ASCII pronto (um tom só, tela cheia)
+if [[ -n $ARTE ]]; then
+  [[ -f $ARTE ]] || { echo "Arquivo não encontrado: $ARTE"; exit 1; }
+  arte=$(sed 's/[[:space:]]*$//' "$ARTE")
+  COLUNAS=$(awk '{ if (length > m) m = length } END { print m }' <<< "$arte")
+  IMAGEM=$ARTE   # mesmo layout de tela cheia do modo imagem
+elif [[ -n $IMAGEM ]]; then
   [[ -f $IMAGEM ]] || { echo "Imagem não encontrada: $IMAGEM"; exit 1; }
   COLUNAS=${COLUNAS:-160}
   arte=$(magick "$IMAGEM" -colorspace gray -auto-level -depth 8 pgm:- | python3 -c '
@@ -110,9 +116,15 @@ fi
 # sumindo na borda esquerda e no pé para se misturar ao fundo.
 tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 ponto=18; espaco=3; [[ -n $IMAGEM ]] && { ponto=$(( 1920 * 10 / 6 / COLUNAS )); espaco=0; }
-desenha() { magick -background none -font "$mono" -pointsize "$ponto" -interline-spacing "$espaco" -fill "$1" label:"$2" "$3"; }
-desenha '#3e3e44' "$(sed 's/[@&%#]/ /g' <<< "$arte")" "$tmp/claro.png"
-desenha '#85858d' "$(sed 's/[^@&%#]/ /g' <<< "$arte")" "$tmp/denso.png"
+desenha() { # label: lê % e \ como comandos; dobrar deixa literal. Espaço na frente impede o @ inicial de virar "ler arquivo".
+  local b='\' t; t=${2//"$b"/"$b$b"}; t=${t//%/%%}
+  magick -background none -font "$mono" -pointsize "$ponto" -interline-spacing "$espaco" -fill "$1" label:" ${t}" "$3"; }
+if [[ -n $ARTE ]]; then   # ASCII de foto usa letras como tinta: separar @&%# apagaria quase tudo
+  desenha '#00000000' " " "$tmp/claro.png"; desenha '#85858d' "$arte" "$tmp/denso.png"
+else
+  desenha '#3e3e44' "$(sed 's/[@&%#]/ /g' <<< "$arte")" "$tmp/claro.png"
+  desenha '#85858d' "$(sed 's/[^@&%#]/ /g' <<< "$arte")" "$tmp/denso.png"
+fi
 magick "$tmp/claro.png" "$tmp/denso.png" -background none -layers merge "$tmp/arte.png"
 read -r w h < <(magick identify -format '%w %h' "$tmp/arte.png")
 esq=$(( w * 35 / 100 )); [[ -n $IMAGEM ]] && esq=1   # imagem cheia não some pela esquerda
