@@ -132,18 +132,23 @@ fi
 # Fundo 1920x1080 (o GRUB estica para a tela).
 tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 if [[ $modo == foto ]]; then   # preenche 1920x1080 sem distorcer; -level clareia o cinza que sobra da cor
-  magick "$FUNDO" -resize 1920x1080^ -gravity center -extent 1920x1080 -colorspace gray -level 0%,60% "$TEMA/fundo.png"
+  # 2560x1440: o GRUB só reduz nas telas menores (nítido no LG); posições abaixo seguem em escala 1920x1080.
+  FW=2560; FH=1440; esc() { echo $(( $1 * FW / 1920 )); }
+  magick "$FUNDO" -resize ${FW}x${FH}^ -gravity center -extent ${FW}x${FH} -colorspace gray -level 0%,60% "$TEMA/fundo.png"
   if (( ${DESLOCA:-0} != 0 )); then   # DESLOCA=-60 puxa a parte esquerda (até CORTE% da largura) para o lado
-    corte=$(( 1920 * ${CORTE:-52} / 100 ))
+    corte=$(( FW * ${CORTE:-52} / 100 ))
     cor=$(magick "$TEMA/fundo.png" -format '%[pixel:p{5,5}]' info:)
-    magick -size 1920x1080 xc:"$cor"       \( "$TEMA/fundo.png" -crop "${corte}x1080+0+0" +repage \) -geometry "$(printf '%+d+0' "$DESLOCA")" -composite       \( "$TEMA/fundo.png" -crop "$(( 1920 - corte ))x1080+${corte}+0" +repage \) -geometry "+${corte}+0" -composite "$TEMA/fundo.png"
+    magick -size ${FW}x${FH} xc:"$cor"       \( "$TEMA/fundo.png" -crop "${corte}x${FH}+0+0" +repage \) -geometry "$(printf '%+d+0' "$(esc "$DESLOCA")")" -composite       \( "$TEMA/fundo.png" -crop "$(( FW - corte ))x${FH}+${corte}+0" +repage \) -geometry "+${corte}+0" -composite "$TEMA/fundo.png"
   fi
   if [[ $LOGO == arch ]]; then   # logo pequeno no meio da tela (no vão entre as mãos da imagem de referência)
     l=$(logo_arch); b='\'; l=${l//"$b"/"$b$b"}; l=${l//%/%%}
     # Recorta as sobras do label, ajusta a largura e encaixa o centro do logo em LOGO_CENTRO (px de 1920x1080).
-    magick -background none -font "$mono" -pointsize 24 -interline-spacing 0 -fill '#f2f2f2' label:" $l"       -trim +repage -resize "${LOGO_LARGURA:-170}x" "$tmp/logo.png"
+    # Fonte grossa e grande, reduzida com Lanczos: o traço do ASCII sobrevive à redução.
+    negrito=$(fc-match -f '%{file}' 'JetBrainsMono Nerd Font Mono:style=Bold')
+    magick -background none -font "$negrito" -pointsize 56 -interline-spacing 0 -fill '#f2f2f2' label:" $l" \
+      -trim +repage -filter Lanczos -resize "$(esc "${LOGO_LARGURA:-160}")x" "$tmp/logo.png"
     read -r lw lh < <(magick identify -format '%w %h' "$tmp/logo.png")
-    IFS=, read -r cx cy <<< "${LOGO_CENTRO:-960,540}"
+    IFS=, read -r cx cy <<< "${LOGO_CENTRO:-960,540}"; cx=$(esc "$cx"); cy=$(esc "$cy")
     magick "$TEMA/fundo.png" "$tmp/logo.png" -gravity northwest -geometry "+$(( cx - lw / 2 ))+$(( cy - lh / 2 ))"       -compose over -composite "$TEMA/fundo.png"
   fi
 else
@@ -196,7 +201,8 @@ rm "$TEMA/caixa.png"
 
 if [[ $LAYOUT == centro ]]; then
   saudacao=""
-  menu_pos="left = 50%-260 top = $([[ $modo == logo ]] && echo 59% || echo 70%) width = 520 height = 24%"
+  # Medido em 1366x768, 1920x1080 e 2560x1440: menu entre o logo e o rodapé, longe das mãos.
+  menu_pos="left = 50%-220 top = $([[ $modo == logo ]] && echo 66% || echo 64%) width = 440 height = 24%"
   rod_pos='left = 0 width = 100% align = "center"'
 else
   saudacao="+ label { left = 7% top = 7% width = 40% height = 40 font = \"$ft\" color = \"#e6e6e8\" text = \"Bem-vindo de volta, $NOME . . .\" }"
