@@ -7,7 +7,7 @@
 set -euo pipefail
 
 NOME_MAQUINA=${NOME_MAQUINA:-arthos}
-USUARIO=${USUARIO:-arthur}
+USUARIO=${USUARIO:-arthos}
 KERNEL_EXTRA=${KERNEL_EXTRA:-} # teste em VM: KERNEL_EXTRA=console=ttyS0
 DOTFILES_REPO=${DOTFILES_REPO-https://github.com/odrdk/dotfiles}
 FUSO=America/Sao_Paulo

@@ -64,7 +64,7 @@ user_pref("browser.discovery.containers.enabled", false);
 user_pref("browser.discovery.enabled", false);
 user_pref("browser.discovery.sites", "http://127.0.0.1/");
 user_pref("browser.download.deletePrivate.chosen", true);
-user_pref("browser.download.lastDir", "/home/haunt/Pictures/wallpapers");
+user_pref("browser.download.lastDir", "/home/arthos/Pictures/wallpapers");
 user_pref("browser.download.panel.shown", true);
 user_pref("browser.download.useDownloadDir", false);
 user_pref("browser.download.viewableInternally.typeWasRegistered.avif", true);

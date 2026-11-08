@@ -46,9 +46,9 @@ Edit config
 	Text Editor
 		Neovim
 			init.lua	st -e nvim $HOME/.config/nvim/init.lua
-			options	st -e nvim $HOME/.config/nvim/lua/haunt/options.lua	
-			keymaps	st -e nvim $HOME/.config/nvim/lua/haunt/keymaps.lua
-			plugins	st -e nvim $HOME/.config/nvim/lua/haunt/plugins.lua
+			options	st -e nvim $HOME/.config/nvim/lua/emnesty/options.lua	
+			keymaps	st -e nvim $HOME/.config/nvim/lua/emnesty/keymaps.lua
+			plugins	st -e nvim $HOME/.config/nvim/lua/emnesty/plugins.lua
 		Emacs	st -e nvim $HOME/.config/emacs/init.el
 	Other
 		Cava	st -e nvim $HOME/.config/cava/config
